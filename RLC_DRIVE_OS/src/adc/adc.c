@@ -76,27 +76,13 @@ return_t adc_is_ready(bool_t *result)
 return_t adc_capture(void)
 {
     return_t ret = X_RET_OK;
-    /*adc_status_t status = {.state = ADC_STATE_SCAN_IN_PROGRESS};
-
-    (void) R_ADC_B_StatusGet(&g_adc_external_ctrl, &status);
-    if(status.state != ADC_STATE_IDLE)
-        return X_RET_OK;*/
-
-    return ret;
     if(adc_calibration_finished == FALSE) return X_RET_OK;
-
-    //tx_mutex_get(&g_mutex_adc,TX_WAIT_FOREVER);
     //R_IOPORT_PinWrite(&g_ioport_ctrl, LED,BSP_IO_LEVEL_HIGH );
     fsp_err_t err = R_ADC_B_ScanGroupStart(&g_adc_external_ctrl,ADC_GROUP_MASK_8);
     if(err != FSP_SUCCESS)
     {
         ERROR_SET_AND_RETURN(F_RET_ERROR_GENERIC);
     }
-
-
-
-
-
     return ret;
 }
 

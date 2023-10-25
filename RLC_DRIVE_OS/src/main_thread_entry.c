@@ -50,13 +50,34 @@ void main_thread_entry(void)
     tx_thread_resume(&thread_motors);
     LOG_D(LOG_STD,"Start");
 
-
+    c_timespan_t ts;
+    h_time_update(&ts);
     /* TODO: add your own code here */
     while (1)
     {
 
         remotectrl_process();
         tx_thread_sleep(10);
+
+
+        bool_t elapsed = FALSE;
+        h_time_is_elapsed_ms(&ts, 1000, &elapsed);
+        if(elapsed == TRUE)
+        {
+            h_time_update(&ts);
+            st_adc_t adc_copy;
+            c_protected_get_object(&adc_inst,&adc_copy,sizeof(st_adc_t));
+
+
+
+
+            LOG_D(LOG_STD,"ADC avg: IIN=%d,VIN=%d,VH1=%d,VH2=%d",
+                            adc_copy.average.iin,
+                            adc_copy.average.vin,
+                            adc_copy.average.vhall1,
+                            adc_copy.average.vhall2);
+        }
+
         /*delay_ms(500);
 
         st_adc_t adc_copy;

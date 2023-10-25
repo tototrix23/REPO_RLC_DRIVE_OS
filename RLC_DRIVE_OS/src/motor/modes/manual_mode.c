@@ -44,8 +44,55 @@ void manual_mode_process(void) {
     if(m12_enrl) remote = remote | 0x02;
     if(m12_derh) remote = remote | 0x04;
 
+    bool_t end = FALSE;
+    motor_drive_sequence(&ptr->sequences.manual.off_sequence);
+    if(motors_instance.mode != MOTOR_MANUAL_MODE)
+        return;
 
-	switch (state) {
+    do
+    {
+        remote = 0x00;
+        if(m12_enrh) remote = remote | 0x01;
+        if(m12_enrl) remote = remote | 0x02;
+        if(m12_derh) remote = remote | 0x04;
+        if(remote != remote_state)
+        {
+            remote_state = remote;
+
+            if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
+                                   m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
+                                   m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
+            {
+                motor_drive_sequence(&ptr->sequences.manual.enrh_sequence);
+            }
+            else if(m12_enrh == !REMOTECTRL_ACTIVE_LEVEL &&
+                    m12_enrl == REMOTECTRL_ACTIVE_LEVEL &&
+                    m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
+            {
+                motor_drive_sequence(&ptr->sequences.manual.enrl_sequence);
+            }
+            else if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
+                    m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
+                    m12_derh == REMOTECTRL_ACTIVE_LEVEL)
+            {
+                motor_drive_sequence(&ptr->sequences.manual.derh_sequence);
+            }
+            else
+            {
+                motor_drive_sequence(&ptr->sequences.manual.off_sequence);
+            }
+        }
+
+        tx_thread_sleep(1);
+
+        if(motors_instance.mode != MOTOR_MANUAL_MODE)
+          end = TRUE;
+
+    }while(!end);
+
+
+
+	/*switch (state) {
 	case MANUAL_NOP:
 		break;
 
@@ -104,7 +151,7 @@ void manual_mode_process(void) {
 		  state = MANUAL_START;
 		}
 		break;
-	}
+	}*/
 }
 
 #endif /* APPLICATION_MOTOR_MODES_MANUAL_MODE_C_ */

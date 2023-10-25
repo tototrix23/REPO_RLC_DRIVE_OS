@@ -19,7 +19,7 @@ return_t drive_process(void)
 {
     motor_process(motors_instance.motorH);
     motor_process(motors_instance.motorL);
-    motor_drive_sequence_process();
+    //motor_drive_sequence_process();
 
     switch(motors_instance.mode)
     {

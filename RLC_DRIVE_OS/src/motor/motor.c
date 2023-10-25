@@ -320,6 +320,7 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
 
                 motor0.motor_ctrl_instance->p_api->errorCheck(motor0.motor_ctrl_instance->p_ctrl, &motor0.error);
             }
+
         }
         break;
 

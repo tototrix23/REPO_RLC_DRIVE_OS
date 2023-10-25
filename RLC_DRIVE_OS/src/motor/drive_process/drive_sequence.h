@@ -21,4 +21,7 @@ return_t motor_drive_sequence_start(c_linked_list_t *list);
 void motor_drive_sequence_process(void);
 return_t motor_drive_sequence_finished(bool_t *result);
 
+return_t motor_drive_sequence(c_linked_list_t *list);
+
+
 #endif /* APPLICATION_MOTOR_DRIVE_PROCESS_DRIVE_SEQUENCE_H_ */
