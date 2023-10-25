@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<azone>
+    <rzone name="R7FA6T2BD3CFP.rzone"/>
+    <partition>
+        <peripheral name="GPT_POEG3" group="GPT_POEG" security=""/>
+        <peripheral name="ICU">
+            <slot name="IRQ0" secure="true"/>
+            <slot name="IRQ1" secure="true"/>
+            <slot name="IRQ2" secure="true"/>
+            <slot name="IRQ3" secure="true"/>
+            <slot name="IRQ4" secure="true"/>
+            <slot name="IRQ5" secure="true"/>
+            <slot name="IRQ6" secure="true"/>
+            <slot name="IRQ7" secure="true"/>
+            <slot name="IRQ8" secure="true"/>
+            <slot name="IRQ9" secure="true"/>
+            <slot name="IRQ10" secure="true"/>
+            <slot name="IRQ11" secure="true"/>
+            <slot name="IRQ12" secure="true"/>
+            <slot name="IRQ13" secure="true"/>
+            <slot name="IRQ14" secure="true"/>
+            <slot name="IRQ15" secure="true"/>
+            <slot name="IRQ16" secure="true"/>
+            <slot name="IRQ17" secure="true"/>
+            <slot name="IRQ18" secure="true"/>
+            <slot name="IRQ19" secure="true"/>
+            <slot name="IRQ20" secure="true"/>
+        </peripheral>
+        <peripheral name="PORT2" group="PORT">
+            <slot name="P212" secure="true"/>
+        </peripheral>
+        <peripheral name="PORTA" group="PORT">
+            <slot name="PA00" secure="true"/>
+            <slot name="PA01" secure="true"/>
+            <slot name="PA02" secure="true"/>
+            <slot name="PA03" secure="true"/>
+            <slot name="PA04" secure="true"/>
+            <slot name="PA05" secure="true"/>
+            <slot name="PA06" secure="true"/>
+            <slot name="PA07" secure="true"/>
+            <slot name="PA08" secure="true"/>
+            <slot name="PA09" secure="true"/>
+            <slot name="PA10" secure="true"/>
+            <slot name="PA11" secure="true"/>
+            <slot name="PA13" secure="true"/>
+            <slot name="PA14" secure="true"/>
+            <slot name="PA15" secure="true"/>
+        </peripheral>
+        <peripheral name="PORTB" group="PORT">
+            <slot name="PB01" secure="true"/>
+            <slot name="PB04" secure="true"/>
+            <slot name="PB05" secure="true"/>
+            <slot name="PB06" secure="true"/>
+            <slot name="PB07" secure="true"/>
+            <slot name="PB08" secure="true"/>
+            <slot name="PB09" secure="true"/>
+            <slot name="PB12" secure="true"/>
+            <slot name="PB13" secure="true"/>
+            <slot name="PB14" secure="true"/>
+        </peripheral>
+        <peripheral name="PORTC" group="PORT">
+            <slot name="PC02" secure="true"/>
+            <slot name="PC03" secure="true"/>
+            <slot name="PC04" secure="true"/>
+            <slot name="PC05" secure="true"/>
+            <slot name="PC07" secure="true"/>
+            <slot name="PC08" secure="true"/>
+            <slot name="PC09" secure="true"/>
+            <slot name="PC10" secure="true"/>
+            <slot name="PC11" secure="true"/>
+            <slot name="PC12" secure="true"/>
+            <slot name="PC13" secure="true"/>
+        </peripheral>
+        <peripheral name="PORTD" group="PORT">
+            <slot name="PD00" secure="true"/>
+            <slot name="PD04" secure="true"/>
+            <slot name="PD07" secure="true"/>
+            <slot name="PD08" secure="true"/>
+            <slot name="PD09" secure="true"/>
+            <slot name="PD12" secure="true"/>
+            <slot name="PD13" secure="true"/>
+            <slot name="PD14" secure="true"/>
+        </peripheral>
+        <peripheral name="PORTE" group="PORT">
+            <slot name="PE08" secure="true"/>
+            <slot name="PE09" secure="true"/>
+            <slot name="PE10" secure="true"/>
+            <slot name="PE11" secure="true"/>
+            <slot name="PE12" secure="true"/>
+            <slot name="PE14" secure="true"/>
+            <slot name="PE15" secure="true"/>
+        </peripheral>
+    </partition>
+</azone>
