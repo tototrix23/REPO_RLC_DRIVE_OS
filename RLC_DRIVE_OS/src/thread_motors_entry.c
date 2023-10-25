@@ -3,6 +3,8 @@
 #include <_interfaces/i_spi/i_spi.h>
 #include <_hal/h_drv8316/h_drv8316.h>
 #include <_lib_impl_cust/impl_spi_motors/impl_spi_motors.h>
+#include <motor/motor.h>
+#include <motor/drive_process/drive_process.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -76,14 +78,15 @@ void thread_motors_entry(void)
     ret = h_drv8316_write_all_registers(&drv_mot2);
     ret = h_drv8316_read_all_registers(&drv_mot2);
 
+    delay_ms(50);
 
 
     // Demarrage de la boucle de traitement
     while (1)
     {
-
-        //tx_thread_sleep (1);
-        delay_ms(500);
+        drive_process();
+        tx_thread_sleep (1);
+        //delay_ms(500);
         //LOG_D(LOG_STD,"while motor");
 
     }

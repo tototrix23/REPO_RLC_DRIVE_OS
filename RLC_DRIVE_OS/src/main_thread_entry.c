@@ -9,6 +9,9 @@
 #include <_lib_impl_cust/impl_time/impl_time.h>
 #include <_lib_impl_cust/impl_log/impl_log.h>
 #include <adc/adc.h>
+#include <remotectrl/remotectrl.h>
+#include <motor/motor.h>
+
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -32,13 +35,15 @@ void main_thread_entry(void)
     h_time_init(&i_time_interface_t);
 
 
-
+    motor_structures_init();
+    motor_init_type(MOTOR_TYPE_RM_ITOH_BRAKE);
     ret = adc_init();
     if(ret != X_RET_OK){
         LOG_E(LOG_STD,"INIT ADC ERROR");}
     else{
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
+    motor_init_fsp();
 
 
 
@@ -49,24 +54,23 @@ void main_thread_entry(void)
     /* TODO: add your own code here */
     while (1)
     {
-        delay_ms(500);
+
+        remotectrl_process();
+        tx_thread_sleep(10);
+        /*delay_ms(500);
 
         st_adc_t adc_copy;
         c_protected_get_object(&adc_inst,&adc_copy,sizeof(st_adc_t));
 
 
-        /*LOG_D(LOG_STD,"ADC inst: IIN=%d,VIN=%d,VH1=%d,VH2=%d",
-                adc_copy.instantaneous.iin,
-                adc_copy.instantaneous.vin,
-                adc_copy.instantaneous.vhall1,
-                adc_copy.instantaneous.vhall2);*/
+
 
         LOG_D(LOG_STD,"ADC avg: IIN=%d,VIN=%d,VH1=%d,VH2=%d",
                         adc_copy.average.iin,
                         adc_copy.average.vin,
                         adc_copy.average.vhall1,
                         adc_copy.average.vhall2);
-
+*/
 
 
 

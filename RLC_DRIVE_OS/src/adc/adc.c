@@ -8,6 +8,7 @@
 #include <config.h>
 #include <_core/c_protected/c_protected.h>
 #include "adc.h"
+#include <motor/motor.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -81,10 +82,11 @@ return_t adc_capture(void)
     if(status.state != ADC_STATE_IDLE)
         return X_RET_OK;*/
 
+    return ret;
     if(adc_calibration_finished == FALSE) return X_RET_OK;
 
     //tx_mutex_get(&g_mutex_adc,TX_WAIT_FOREVER);
-    R_IOPORT_PinWrite(&g_ioport_ctrl, LED,BSP_IO_LEVEL_HIGH );
+    //R_IOPORT_PinWrite(&g_ioport_ctrl, LED,BSP_IO_LEVEL_HIGH );
     fsp_err_t err = R_ADC_B_ScanGroupStart(&g_adc_external_ctrl,ADC_GROUP_MASK_8);
     if(err != FSP_SUCCESS)
     {
@@ -105,11 +107,13 @@ void adc_interrupt(adc_callback_args_t *p_args)
     {
         if (p_args->group_mask == ADC_GROUP_MASK_0)
         {
-
+            p_args->p_context = motors_instance.motorH->motor_driver_instance;
+            rm_motor_120_driver_cyclic(p_args);
         }
         if (p_args->group_mask == ADC_GROUP_MASK_2)
         {
-
+            p_args->p_context = motors_instance.motorL->motor_driver_instance;
+            rm_motor_120_driver_cyclic(p_args);
         }
         if (p_args->group_mask == ADC_GROUP_MASK_8)
         {
@@ -155,7 +159,7 @@ void adc_interrupt(adc_callback_args_t *p_args)
             adc_inst.average.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(adc_hall2);
 
 
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED,BSP_IO_LEVEL_LOW );
+            //R_IOPORT_PinWrite(&g_ioport_ctrl, LED,BSP_IO_LEVEL_LOW );
 
         }
     }
