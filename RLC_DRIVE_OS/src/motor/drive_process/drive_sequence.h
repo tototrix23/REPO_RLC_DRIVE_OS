@@ -17,11 +17,28 @@
 #include <motor/drive_mode.h>
 
 
-return_t motor_drive_sequence_start(c_linked_list_t *list);
-void motor_drive_sequence_process(void);
-return_t motor_drive_sequence_finished(bool_t *result);
+typedef enum e_sequence_finish_status
+{
+    SEQUENCE_FINISH_OK,
+    SEQUENCE_FINISH_TIMEOUT,
+    SEQUENCE_FINISH_ERROR,
+}sequence_finish_status_t;
 
-return_t motor_drive_sequence(c_linked_list_t *list);
+typedef struct st_sequence_result
+{
+    sequence_finish_status_t status;
+    uint16_t errorH;
+    uint16_t errorL;
+}sequence_result_t;
+
+#define MOTOR_SEQUENCE_CHECK_NONE           0x0000
+#define MOTOR_SEQUENCE_CHECK_ERROR_START    0x0001
+#define MOTOR_SEQUENCE_CHECK_ERROR_RUN      0x0002
+#define MOTOR_SEQUENCE_CHECK_TIMEOUT        0x0003
+
+
+
+return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_result_t *result);
 
 
 #endif /* APPLICATION_MOTOR_DRIVE_PROCESS_DRIVE_SEQUENCE_H_ */

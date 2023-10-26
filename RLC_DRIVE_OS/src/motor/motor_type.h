@@ -83,6 +83,7 @@ typedef struct st_motor_phase
 {
 	e_motor_next_phase_condition_t next_condition;
 	uint32_t condition_timeout_ms;
+	uint32_t post_tempo_ms;
     motor_control_t params_motors[2];
 }motor_phase_t;
 
@@ -97,14 +98,16 @@ typedef struct st_motor_profil_t
 
     struct
     {
-    	c_linked_list_t error_sequence;
+    	c_linked_list_t error;
 
         struct
         {
-            c_linked_list_t off_sequence;
-            c_linked_list_t enrl_sequence;
-            c_linked_list_t enrh_sequence;
-            c_linked_list_t derh_sequence;
+            c_linked_list_t off;
+            c_linked_list_t enrl;
+            c_linked_list_t enrl_stop;
+            c_linked_list_t enrh;
+            c_linked_list_t enrh_stop;
+            c_linked_list_t derh;
         }manual;
 
         struct

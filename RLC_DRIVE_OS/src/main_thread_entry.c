@@ -65,7 +65,7 @@ void main_thread_entry(void)
         if(elapsed == TRUE)
         {
             h_time_update(&ts);
-            st_adc_t adc_copy;
+            /*st_adc_t adc_copy;
             c_protected_get_object(&adc_inst,&adc_copy,sizeof(st_adc_t));
 
 
@@ -75,7 +75,7 @@ void main_thread_entry(void)
                             adc_copy.average.iin,
                             adc_copy.average.vin,
                             adc_copy.average.vhall1,
-                            adc_copy.average.vhall2);
+                            adc_copy.average.vhall2);*/
         }
 
         /*delay_ms(500);

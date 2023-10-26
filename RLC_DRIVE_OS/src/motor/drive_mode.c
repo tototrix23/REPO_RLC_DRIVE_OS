@@ -8,7 +8,7 @@
 #include "motor.h"
 #include "drive_mode.h"
 #include <motor/modes/init_mode.h>
-
+#include <motor/modes/manual_mode.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -19,6 +19,20 @@ return_t set_drive_mode(drive_mode_t mode)
     drive_mode_t current_mode = motors_instance.mode;
     if (mode != current_mode)
     {
+
+        // Le mode manuel est une boucle infinie.
+        // Il faut envoyer un message au mode manuel pour lui demander de
+        // s'arreter
+        if(current_mode == MOTOR_MANUAL_MODE)
+        {
+            // Envoie de la demande au mode manuel
+            manual_mode_stop();
+            // Attente de sortie du mode manuel
+            while(manual_mode_is_running() == TRUE)
+                tx_thread_sleep(1);
+        }
+
+
         switch (mode)
         {
             case MOTOR_UNKNOWN_MODE:
@@ -27,7 +41,7 @@ return_t set_drive_mode(drive_mode_t mode)
 
             case MOTOR_MANUAL_MODE:
                 LOG_D(LOG_STD,"Set manual mode");
-                manual_mode_start();
+
             break;
 
             case MOTOR_INIT_MODE:

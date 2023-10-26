@@ -17,141 +17,132 @@
 #include <motor/drive_process/drive_sequence.h>
 #include <remotectrl/remotectrl.h>
 
-typedef enum e_manual_states_t
-{
-   MANUAL_NOP,
-   MANUAL_START,
-   MANUAL_WAIT,
-   MANUAL_IDLE,
-   MANUAL_WAIT_PROCESS,
-}manual_states_t;
+#undef  LOG_LEVEL
+#define LOG_LEVEL     LOG_LVL_DEBUG
+#undef  LOG_MODULE
+#define LOG_MODULE    "manual"
 
-static manual_states_t state = MANUAL_NOP;
-static uint8_t remote_state = 0;
 
-void manual_mode_start(void)
+static bool_t manual_mode_running = FALSE;
+static bool_t manual_mode_stop_order = FALSE;
+
+
+bool_t check_stop_request(motor_profil_t *ptr);
+
+bool_t check_stop_request(motor_profil_t *ptr)
 {
-	remote_state = 0;
-	motors_instance.mode = MOTOR_MANUAL_MODE;
-	state = MANUAL_START;
+    sequence_result_t sequence_result;
+
+    if(manual_mode_stop_order == TRUE)
+    {
+        // Arrêt des moteurs
+        motor_drive_sequence(&ptr->sequences.manual.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+        // RAZ des flags du mode manuel
+        manual_mode_stop_order = FALSE;
+        manual_mode_running = FALSE;
+        //
+        LOG_D(LOG_STD,"manual mode stop order applied")
+        // Fin
+        return TRUE;
+    }
+    else
+        return FALSE;
 }
+
+
+void manual_mode_stop(void)
+{
+    manual_mode_stop_order = TRUE;
+    LOG_D(LOG_STD,"order to stop manual mode")
+}
+
+bool_t manual_mode_is_running(void)
+{
+   return manual_mode_running;
+}
+
 
 void manual_mode_process(void) {
 	motor_profil_t *ptr = &motors_instance.profil;
-    bool_t finished=FALSE;
     uint8_t remote = 0x00;
+    uint8_t remote_state=0x00;
+    sequence_result_t sequence_result;
+    c_linked_list_t *current_list=0x00;
+    manual_mode_running = TRUE;
+
     if(m12_enrh) remote = remote | 0x01;
     if(m12_enrl) remote = remote | 0x02;
     if(m12_derh) remote = remote | 0x04;
 
     bool_t end = FALSE;
-    motor_drive_sequence(&ptr->sequences.manual.off_sequence);
-    if(motors_instance.mode != MOTOR_MANUAL_MODE)
-        return;
+    motor_drive_sequence(&ptr->sequences.manual.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    current_list = &ptr->sequences.manual.off;
 
     do
     {
+
+        // Si une demande d'arrêt du modem manuel est présente
+        if(check_stop_request(ptr) == TRUE) return;
+
+        // Récupération de l'état de la télécommande
         remote = 0x00;
         if(m12_enrh) remote = remote | 0x01;
         if(m12_enrl) remote = remote | 0x02;
         if(m12_derh) remote = remote | 0x04;
+
+        // Comparaison avec l'état précédent.
+        // Traitement si l'état à changé.
         if(remote != remote_state)
         {
+            // Sauvegarde du nouvel état en cours de la télécommande
             remote_state = remote;
 
+            // Arrêt propre (rampes par exemple) du mode en cours si besoin
+            if(current_list == &ptr->sequences.manual.enrh)
+            {
+                motor_drive_sequence(&ptr->sequences.manual.enrh_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            }
+            else if(current_list == &ptr->sequences.manual.enrl)
+            {
+                motor_drive_sequence(&ptr->sequences.manual.enrl_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            }
+
+            // Traitement de la nouvelle consigne
             if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
                                    m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
                                    m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
             {
-                motor_drive_sequence(&ptr->sequences.manual.enrh_sequence);
+                motor_drive_sequence(&ptr->sequences.manual.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = &ptr->sequences.manual.enrh;
             }
             else if(m12_enrh == !REMOTECTRL_ACTIVE_LEVEL &&
                     m12_enrl == REMOTECTRL_ACTIVE_LEVEL &&
                     m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
             {
-                motor_drive_sequence(&ptr->sequences.manual.enrl_sequence);
+                motor_drive_sequence(&ptr->sequences.manual.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = &ptr->sequences.manual.enrl;
             }
             else if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
                     m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
                     m12_derh == REMOTECTRL_ACTIVE_LEVEL)
             {
-                motor_drive_sequence(&ptr->sequences.manual.derh_sequence);
+                motor_drive_sequence(&ptr->sequences.manual.derh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = &ptr->sequences.manual.derh;
             }
             else
             {
-                motor_drive_sequence(&ptr->sequences.manual.off_sequence);
+                motor_drive_sequence(&ptr->sequences.manual.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = &ptr->sequences.manual.off;
             }
         }
 
         tx_thread_sleep(1);
 
-        if(motors_instance.mode != MOTOR_MANUAL_MODE)
-          end = TRUE;
+
 
     }while(!end);
 
-
-
-	/*switch (state) {
-	case MANUAL_NOP:
-		break;
-
-	case MANUAL_START:
-		motor_drive_sequence_start(&ptr->sequences.manual.off_sequence);
-		state = MANUAL_WAIT;
-		break;
-
-	case MANUAL_WAIT:
-		motor_drive_sequence_finished(&finished);
-		if(finished == TRUE)
-		{
-	      remote_state = 0x00;
-          state = MANUAL_IDLE;
-		}
-		break;
-
-	case MANUAL_IDLE:
-		if(remote != remote_state)
-		{
-			remote_state = remote;
-
-
-			if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
-			           m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
-					   m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
-			{
-				motor_drive_sequence_start(&ptr->sequences.manual.enrh_sequence);
-			}
-			else if(m12_enrh == !REMOTECTRL_ACTIVE_LEVEL &&
-					m12_enrl == REMOTECTRL_ACTIVE_LEVEL &&
-					m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
-			{
-				motor_drive_sequence_start(&ptr->sequences.manual.enrl_sequence);
-			}
-			else if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
-					m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
-					m12_derh == REMOTECTRL_ACTIVE_LEVEL)
-			{
-				motor_drive_sequence_start(&ptr->sequences.manual.derh_sequence);
-			}
-			else
-			{
-				motor_drive_sequence_start(&ptr->sequences.manual.off_sequence);
-			}
-
-			state = MANUAL_WAIT_PROCESS;
-		}
-
-		break;
-
-	case MANUAL_WAIT_PROCESS:
-		motor_drive_sequence_finished(&finished);
-		if(finished == TRUE && (remote != remote_state))
-		{
-		  state = MANUAL_START;
-		}
-		break;
-	}*/
+    manual_mode_running = FALSE;
 }
 
 #endif /* APPLICATION_MOTOR_MODES_MANUAL_MODE_C_ */
