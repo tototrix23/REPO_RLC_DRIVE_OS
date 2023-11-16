@@ -8,6 +8,7 @@
 #include "drive_sequence.h"
 #include <motor/modes/manual_mode.h>
 #include <motor/modes/init_mode.h>
+#include <motor/motors_errors.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -27,6 +28,9 @@ return_t drive_process(void)
     	manual_mode_process();
     	break;
 
+    case MOTOR_INIT_MODE:
+        init_mode_process();
+        break;
     default:
     	break;
     }

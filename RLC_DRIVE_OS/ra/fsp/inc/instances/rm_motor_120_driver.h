@@ -159,6 +159,10 @@ typedef struct st_motor_120_driver_instance_ctrl
     timer_callback_args_t timer_callback_args;               ///< For call timer callbackSet function
 
     /* Extensions RAYLEC */
+    uint32_t brake_counter;
+    uint8_t *brake_mode;
+    uint16_t *brake_mask;
+    motor_ext_settings_api_t *extSettings;
     motor_ext_cfg_t *extCfg;
 } motor_120_driver_instance_ctrl_t;
 
@@ -210,6 +214,8 @@ fsp_err_t RM_MOTOR_120_DRIVER_ParameterUpdate(motor_120_driver_ctrl_t * const   
 
 
 /** Extensions RAYLEC */
+fsp_err_t RM_MOTOR_120_DRIVER_ExtBrakeSet (motor_120_driver_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *brake_mask);
+fsp_err_t RM_MOTOR_120_DRIVER_ExtSettingsSet (motor_120_driver_ctrl_t * const p_ctrl, motor_ext_settings_api_t * const settings);
 fsp_err_t RM_MOTOR_120_DRIVER_ExtCfgSet (motor_120_driver_ctrl_t * const p_ctrl, motor_ext_cfg_t * const p_cfg);
 fsp_err_t RM_MOTOR_120_DRIVER_ExtBrake (motor_120_driver_ctrl_t * const p_ctrl);
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */

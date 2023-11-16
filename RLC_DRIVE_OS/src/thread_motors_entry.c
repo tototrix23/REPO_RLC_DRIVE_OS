@@ -5,7 +5,7 @@
 #include <_lib_impl_cust/impl_spi_motors/impl_spi_motors.h>
 #include <motor/motor.h>
 #include <motor/drive_process/drive_process.h>
-
+#include <motor/drive_process/drive_sequence.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -80,6 +80,20 @@ void thread_motors_entry(void)
 
     delay_ms(50);
 
+    /*sequence_result_t sequence_result;
+    motor_drive_sequence(&motors_instance.profil.sequences.off_brake,0,&sequence_result);
+
+    while(1)
+    {
+
+        tx_thread_sleep (1);
+        delay_ms(1000);
+        motors_instance.motorH->motor_ctrl_instance->p_api->statusGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl, (uint8_t *)&motors_instance.motorH->status);
+        motors_instance.motorL->motor_ctrl_instance->p_api->statusGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl, (uint8_t *)&motors_instance.motorL->status);
+        LOG_D(LOG_STD,"ErrH: %d - ErrL: %d - StatusH: %d - StatusL: %d",motors_instance.motorH->error,motors_instance.motorL->error,
+                motors_instance.motorH->status,motors_instance.motorL->status);
+
+    }*/
 
     // Demarrage de la boucle de traitement
     while (1)

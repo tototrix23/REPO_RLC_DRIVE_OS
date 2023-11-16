@@ -304,13 +304,13 @@ typedef struct st_motor_api
     /** Fonction permettant de renseigner l'API sur les paramètres statiques du moteur  */
     fsp_err_t (* configSet)(motor_ctrl_t * const p_ctrl, motor_ext_cfg_t const p_cfg);
     /** Fonction permettant de renseigner l'API sur la consigne de fonctionnement en mode non régulé  */
-    fsp_err_t (* speedSetOpenLoop)(motor_ctrl_t * const p_ctrl, motor_ext_settings_t const settings);
+    fsp_err_t (* settingsSet)(motor_ctrl_t * const p_ctrl, motor_ext_settings_t const settings);
     /** Fonction permettant de configurer le compteur de points  */
     fsp_err_t (* pulsesSet)(motor_ctrl_t * const p_ctrl, int32_t const value);
     /** Fonction permettant de lire le compteur de points  */
     fsp_err_t (* pulsesGet)(motor_ctrl_t * const p_ctrl, int32_t *const value);
     /** Fonction permettant de lire le compteur de points  */
-    fsp_err_t (* brake)(motor_ctrl_t * const p_ctrl);
+    fsp_err_t (* brake)(motor_ctrl_t * const p_ctrl,uint16_t mask);
 } motor_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */

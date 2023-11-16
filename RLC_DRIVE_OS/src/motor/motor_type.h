@@ -76,6 +76,13 @@ typedef struct st_motor_control
     {
         float rpm;
     }regulated;
+
+    struct
+    {
+        uint16_t mask;
+    }brake;
+
+
 }motor_control_t;
 
 
@@ -99,10 +106,11 @@ typedef struct st_motor_profil_t
     struct
     {
     	c_linked_list_t error;
+    	c_linked_list_t off_no_brake;
+    	c_linked_list_t off_brake;
 
         struct
         {
-            c_linked_list_t off;
             c_linked_list_t enrl;
             c_linked_list_t enrl_stop;
             c_linked_list_t enrh;
@@ -112,7 +120,13 @@ typedef struct st_motor_profil_t
 
         struct
         {
-
+            c_linked_list_t stretch1;
+            c_linked_list_t stretch2;
+            c_linked_list_t enrh;
+            c_linked_list_t enrl;
+            c_linked_list_t posterAccelerate;
+            c_linked_list_t posterDecelerate;
+            c_linked_list_t posterStop;
         }init;
 
         struct

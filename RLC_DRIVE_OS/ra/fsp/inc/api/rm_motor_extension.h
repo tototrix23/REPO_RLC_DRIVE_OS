@@ -35,6 +35,7 @@ typedef struct st_motor_ext_cfg
  */
 typedef struct st_motor_ext_settings
 {
+    uint16_t brake_mask;
     int16_t percent;                    ///< Vitesse en pourcentage.
     uint32_t timeout_hall_ms;           ///< Timeout max sur les codeurs HALL.
     float   current_max;                ///< Courant maximum admissible.

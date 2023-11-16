@@ -13,7 +13,8 @@
 #include <_core/c_common.h>
 
 
-void init_mode_start(void);
-void init_mode_process(void);
+void init_mode_stop(void);
+bool_t init_mode_is_running(void);
+return_t init_mode_process(void);
 
 #endif /* APPLICATION_MOTOR_MODES_INIT_MODE_H_ */

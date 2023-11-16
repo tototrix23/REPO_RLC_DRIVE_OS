@@ -92,7 +92,9 @@ const motor_120_driver_api_t g_motor_120_driver_on_motor_120_driver =
     .flagCurrentOffsetGet = RM_MOTOR_120_DRIVER_FlagCurrentOffsetGet,
     .parameterUpdate      = RM_MOTOR_120_DRIVER_ParameterUpdate,
 
+    .brakeSet             = RM_MOTOR_120_DRIVER_ExtBrakeSet,
     .configSet            = RM_MOTOR_120_DRIVER_ExtCfgSet,
+    .settingsSet          = RM_MOTOR_120_DRIVER_ExtSettingsSet,
     .brake                = RM_MOTOR_120_DRIVER_ExtBrake,
 };
 
@@ -231,6 +233,8 @@ fsp_err_t RM_MOTOR_120_DRIVER_Open (motor_120_driver_ctrl_t * const p_ctrl, moto
 
     rm_motor_120_driver_reset(p_instance_ctrl);
 
+
+
     /* Mark driver as open */
     p_instance_ctrl->open = MOTOR_120_DRIVER_OPEN;
 
@@ -298,7 +302,6 @@ fsp_err_t RM_MOTOR_120_DRIVER_Run (motor_120_driver_ctrl_t * const p_ctrl)
 #endif
 
     p_instance_ctrl->u1_active = MOTOR_120_DRIVER_STATUS_ACTIVE;
-
     rm_motor_120_driver_ctrl_start(p_instance_ctrl);
 
     return FSP_SUCCESS;
@@ -428,6 +431,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_PhasePatternSet (motor_120_driver_ctrl_t * const  
     gpt_instance_ctrl_t          * p_w_phase_gpt_ctrl = p_w_phase_gpt->p_ctrl;
     three_phase_duty_cycle_t       temp_duty;
     uint32_t temp_carrier_set;
+
 
     if ((p_three_phase != NULL) &&
         (p_u_phase_gpt != NULL) &&
@@ -1288,7 +1292,12 @@ fsp_err_t RM_MOTOR_120_DRIVER_CurrentOffsetCalc (motor_120_driver_ctrl_t * const
             else
             {
                 p_instance_ctrl->u1_flag_offset_calc = MOTOR_120_DRIVER_FLAG_OFFSET_CALC_ALL_FINISH;
-                rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
+
+                uint8_t *ptr_brake = p_instance_ctrl->brake_mode;
+                if(*ptr_brake == 1)
+                    RM_MOTOR_120_DRIVER_ExtBrake(p_instance_ctrl);
+                else
+                   rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
             }
         }
     }
@@ -1318,6 +1327,26 @@ fsp_err_t RM_MOTOR_120_DRIVER_CurrentOffsetCalc (motor_120_driver_ctrl_t * const
     }
     else
     {
+        uint8_t *ptr_brake = p_instance_ctrl->brake_mode;
+        if(*ptr_brake == 1)
+        {
+
+                uint32_t *counter = &p_instance_ctrl->brake_counter;
+                if( (*counter & *p_instance_ctrl->brake_mask) == *p_instance_ctrl->brake_mask)
+                {
+                    RM_MOTOR_120_DRIVER_ExtBrake(p_instance_ctrl);
+                }
+                else
+                {
+                    rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
+                }
+
+                *counter = *counter+1;
+                if(*counter >= 0x8000)
+                    *counter = 0;
+       }
+
+
         /* Do nothing */
     }
 
@@ -1396,6 +1425,22 @@ fsp_err_t RM_MOTOR_120_DRIVER_ParameterUpdate (motor_120_driver_ctrl_t * const  
     return FSP_SUCCESS;
 }
 
+fsp_err_t RM_MOTOR_120_DRIVER_ExtBrakeSet (motor_120_driver_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *p_brake_mask)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_driver_instance_ctrl_t * p_instance_ctrl = (motor_120_driver_instance_ctrl_t *) p_ctrl;
+    p_instance_ctrl->brake_mode = p_brake;
+    p_instance_ctrl->brake_mask = p_brake_mask;
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_DRIVER_ExtSettingsSet (motor_120_driver_ctrl_t * const p_ctrl, motor_ext_settings_api_t * const settings)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_driver_instance_ctrl_t * p_instance_ctrl = (motor_120_driver_instance_ctrl_t *) p_ctrl;
+    p_instance_ctrl->extSettings = settings;
+    return err;
+}
 
 fsp_err_t RM_MOTOR_120_DRIVER_ExtCfgSet (motor_120_driver_ctrl_t * const p_ctrl, motor_ext_cfg_t * const p_cfg)
 {
@@ -1415,6 +1460,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_ExtBrake (motor_120_driver_ctrl_t * const p_ctrl)
     #endif
 
     p_instance_ctrl->u1_active = MOTOR_120_DRIVER_STATUS_INACTIVE;
+    //*p_instance_ctrl->brake_mode = 1;
 
     p_instance_ctrl->f_iu_ad  = 0.0F;
     p_instance_ctrl->f_iw_ad  = 0.0F;
@@ -1475,6 +1521,9 @@ static void rm_motor_120_driver_reset (motor_120_driver_instance_ctrl_t * p_ctrl
     p_ctrl->f_sum_vu_ad          = 0.0F;
     p_ctrl->f_sum_vv_ad          = 0.0F;
     p_ctrl->f_sum_vw_ad          = 0.0F;
+
+    p_ctrl->brake_counter = 0;
+
 }                                      /* End of function rm_motor_120_driver_reset() */
 
 /***********************************************************************************************************************
@@ -1524,6 +1573,8 @@ static void rm_motor_120_driver_ctrl_start (motor_120_driver_instance_ctrl_t * p
     timer_instance_t const          * p_v_phase_gpt  = p_three_phase->p_cfg->p_timer_instance[1];
     timer_instance_t const          * p_w_phase_gpt  = p_three_phase->p_cfg->p_timer_instance[2];
 
+    //rm_motor_120_driver_set_uvw_duty(p_ctrl,0.0f,0.0f,0.0f);
+
     if ((p_three_phase != NULL) &&
         (p_u_phase_gpt != NULL) &&
         (p_v_phase_gpt != NULL) &&
@@ -1556,6 +1607,8 @@ static void rm_motor_120_driver_ctrl_stop (motor_120_driver_instance_ctrl_t * p_
     timer_instance_t const          * p_u_phase_gpt  = p_three_phase->p_cfg->p_timer_instance[0];
     timer_instance_t const          * p_v_phase_gpt  = p_three_phase->p_cfg->p_timer_instance[1];
     timer_instance_t const          * p_w_phase_gpt  = p_three_phase->p_cfg->p_timer_instance[2];
+
+    //rm_motor_120_driver_set_uvw_duty(p_ctrl,0.0f,0.0f,0.0f);
 
     if ((p_three_phase != NULL) &&
         (p_u_phase_gpt != NULL) &&

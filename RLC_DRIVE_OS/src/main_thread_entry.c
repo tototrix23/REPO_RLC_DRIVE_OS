@@ -44,7 +44,8 @@ void main_thread_entry(void)
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
     motor_init_fsp();
-
+    motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
+    motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
 
 
     tx_thread_resume(&thread_motors);

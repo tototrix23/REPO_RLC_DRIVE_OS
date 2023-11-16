@@ -153,7 +153,7 @@ const motor_api_t g_motor_on_motor_120_degree =
 
     /** Extensions RAYLEC */
     .configSet       = RM_MOTOR_120_DEGREE_ExtCfgSet,
-    .speedSetOpenLoop= RM_MOTOR_120_DEGREE_ExtSettingsSet,
+    .settingsSet     = RM_MOTOR_120_DEGREE_ExtSettingsSet,
     .pulsesSet       = RM_MOTOR_120_DEGREE_ExtPulsesSet,
     .pulsesGet       = RM_MOTOR_120_DEGREE_ExtPulsesGet,
     .brake           = RM_MOTOR_120_DEGREE_ExtBrake,
@@ -208,6 +208,17 @@ fsp_err_t RM_MOTOR_120_DEGREE_Open (motor_ctrl_t * const p_ctrl, motor_cfg_t con
     //---------------------------------------------
     p_extended_cfg->p_motor_120_control_instance->p_api->pulsesSet(p_extended_cfg->p_motor_120_control_instance->p_ctrl,&p_instance_ctrl->extPulses);
     RM_MOTOR_120_DEGREE_ExtPulsesSet(p_instance_ctrl, 0);
+
+
+    p_instance_ctrl->brake_mode = 0;
+    if (p_extended_cfg != NULL)
+    {
+        p_extended_cfg->p_motor_120_control_instance->p_api->brakeSet(p_extended_cfg->p_motor_120_control_instance->p_ctrl,
+                                                                      &p_instance_ctrl->brake_mode,&p_instance_ctrl->brake_mask);
+    }
+
+
+
 
     p_instance_ctrl->p_cfg = p_cfg;
 
@@ -344,6 +355,7 @@ fsp_err_t RM_MOTOR_120_DEGREE_Stop (motor_ctrl_t * const p_ctrl)
     MOTOR_120_DEGREE_ERROR_RETURN(MOTOR_120_DEGREE_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
 #endif
 
+    p_instance_ctrl->brake_mode = 0;
     rm_motor_120_degree_statemachine_event(p_instance_ctrl, MOTOR_120_DEGREE_CTRL_EVENT_STOP);
 
     return err;
@@ -405,6 +417,8 @@ fsp_err_t RM_MOTOR_120_DEGREE_SpeedSet (motor_ctrl_t * const p_ctrl, float const
         (motor_120_degree_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
 
     p_instance_ctrl->extSettings.active = 0;
+    p_instance_ctrl->brake_mode = 0;
+
 
     if(p_instance_ctrl->extCfg.speed_reverse == 0)
         p_instance_ctrl->f_speed_rpm = speed_rpm;
@@ -688,6 +702,7 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtSettingsSet(motor_ctrl_t *const p_ctrl, motor_e
     p_instance_ctrl->extSettings.active = 1;
     p_instance_ctrl->extSettings.voltage = 0.0;
     p_instance_ctrl->extSettings.settings = settings;
+    p_instance_ctrl->brake_mode = 0;
 
     if(p_instance_ctrl->extCfg.speed_reverse == 1)
     {
@@ -699,7 +714,7 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtSettingsSet(motor_ctrl_t *const p_ctrl, motor_e
 
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
-        err = p_extended_cfg->p_motor_120_control_instance->p_api->speedSetOpenLoop (
+        err = p_extended_cfg->p_motor_120_control_instance->p_api->settingsSet (
                 p_extended_cfg->p_motor_120_control_instance->p_ctrl, &p_instance_ctrl->extSettings);
     }
 
@@ -730,7 +745,7 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtPulsesGet(motor_ctrl_t * const p_ctrl, int32_t 
     return FSP_SUCCESS;
 }
 
-fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl)
+fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t mask)
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
@@ -739,6 +754,19 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl)
     FSP_ASSERT(NULL != p_instance_ctrl);
     MOTOR_120_DEGREE_ERROR_RETURN(MOTOR_120_DEGREE_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
 #endif
+
+    p_instance_ctrl->brake_mode = 1;
+    p_instance_ctrl->brake_mask = mask;
+    p_instance_ctrl->extSettings.active=0;
+
+    motor_120_degree_extended_cfg_t *p_extended_cfg =
+                (motor_120_degree_extended_cfg_t*) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_control_instance != NULL)
+    {
+        err = p_extended_cfg->p_motor_120_control_instance->p_api->brake (
+                p_extended_cfg->p_motor_120_control_instance->p_ctrl);
+    }
 
     rm_motor_120_degree_statemachine_event(p_instance_ctrl, MOTOR_120_DEGREE_CTRL_EVENT_BRAKE);
 
@@ -789,7 +817,12 @@ static uint8_t rm_motor_120_degree_inactive (motor_120_degree_instance_ctrl_t * 
 static uint8_t rm_motor_120_degree_brake (motor_120_degree_instance_ctrl_t * p_ctrl)
 {
     fsp_err_t err = FSP_SUCCESS;
+
+    motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
+    p_instance_ctrl->brake_mode = 1;
     motor_120_degree_extended_cfg_t * p_extended_cfg = (motor_120_degree_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
+
+
 
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
@@ -1089,11 +1122,6 @@ static uint16_t rm_motor_120_degree_error_check (motor_120_degree_instance_ctrl_
     /* Over voltage error check */
     u2_error_flags |= rm_motor_check_over_voltage_error(f_vdc, p_extended_cfg->f_overvoltage_limit);
 
-    if(f_vdc < p_extended_cfg->f_lowvoltage_limit)
-    {
-        volatile uint8_t xxx=1;
-        xxx++;
-    }
 
 
     /* Low voltage error check */
@@ -1108,22 +1136,28 @@ static uint16_t rm_motor_120_degree_error_check (motor_120_degree_instance_ctrl_
             u2_error_flags |= rm_motor_check_over_speed_error(f_speed, p_extended_cfg->f_overspeed_limit);
         }
 
-        /* timeout error check (undetected zerocross) */
-        p_motor_120_control_instance->p_api->timeoutErrorFlagGet(p_motor_120_control_instance->p_ctrl,
-                                                                 &u1_temp_to_error_flag);
-
-        if (MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET == u1_temp_to_error_flag)
+        if(p_ctrl->brake_mode == 0)
         {
-            u2_error_flags |= MOTOR_ERROR_BEMF_TIMEOUT;
-        }
+            /* timeout error check (undetected zerocross) */
+            p_motor_120_control_instance->p_api->timeoutErrorFlagGet(p_motor_120_control_instance->p_ctrl,
+                                                                     &u1_temp_to_error_flag);
 
-        /* Bemf/Hall pattern error check */
-        p_motor_120_control_instance->p_api->patternErrorFlagGet(p_motor_120_control_instance->p_ctrl,
-                                                                 &u1_temp_ptn_error_flag);
+            if (MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET == u1_temp_to_error_flag)
+            {
+                u2_error_flags |= MOTOR_ERROR_BEMF_TIMEOUT;
+            }
 
-        if (MOTOR_120_CONTROL_PATTERN_ERROR_FLAG_SET == u1_temp_ptn_error_flag)
-        {
-            u2_error_flags |= MOTOR_ERROR_BEMF_PATTERN;
+            /* Bemf/Hall pattern error check */
+            p_motor_120_control_instance->p_api->patternErrorFlagGet(p_motor_120_control_instance->p_ctrl,
+                                                                     &u1_temp_ptn_error_flag);
+
+
+
+
+            if (MOTOR_120_CONTROL_PATTERN_ERROR_FLAG_SET == u1_temp_ptn_error_flag)
+            {
+                u2_error_flags |= MOTOR_ERROR_BEMF_PATTERN;
+            }
         }
     }
 

@@ -114,8 +114,9 @@ const motor_120_control_api_t g_motor_120_control_on_motor_120_control_hall =
     .parameterUpdate     = RM_MOTOR_120_CONTROL_HALL_ParameterUpdate,
 
     /** Extension RAYLEC */
+    .brakeSet            = RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet,
     .configSet           = RM_MOTOR_120_CONTROL_HALL_ExtCfgSet,
-    .speedSetOpenLoop    = RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet,
+    .settingsSet         = RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet,
     .pulsesSet           = RM_MOTOR_120_CONTROL_HALL_ExtPulsesSetPtr,
     .brake               = RM_MOTOR_120_CONTROL_HALL_ExtBrake,
 };
@@ -405,6 +406,9 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_SpeedSet (motor_120_control_ctrl_t * const p
     MOTOR_120_CONTROL_HALL_ERROR_RETURN(MOTOR_120_CONTROL_HALL_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
 #endif
 
+
+    p_instance_ctrl->extSettings->active = 0;
+
     if (speed_rpm >= 0)
     {
         p_instance_ctrl->direction        = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
@@ -631,6 +635,24 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ParameterUpdate (motor_120_control_ctrl_t * 
     return FSP_SUCCESS;
 }
 
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet (motor_120_control_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *p_brake_mask)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+    p_instance_ctrl->brake_mode = p_brake;
+    p_instance_ctrl->brake_mask = p_brake_mask;
+
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+            (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->brakeSet(
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl,
+            p_brake,p_brake_mask);
+    }
+    return err;
+}
 
 fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtCfgSet(motor_120_control_ctrl_t *const p_ctrl, motor_ext_cfg_t *const p_cfg)
 {
@@ -657,6 +679,7 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet(motor_120_control_ctrl_t 
     motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
     p_instance_ctrl->extSettings = settings;
 
+
     int16_t percent = p_instance_ctrl->extSettings->settings.percent;
 
     if (percent >= 0)
@@ -673,6 +696,22 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet(motor_120_control_ctrl_t 
         p_instance_ctrl->extSettings->voltage = ((float) percent * p_instance_ctrl->p_cfg->f4_max_drive_v)
                 / (float) 100.0;
     }
+
+
+
+
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+                (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->settingsSet(
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl,
+            settings);
+    }
+
+
+
 
     return err;
 }
@@ -694,6 +733,8 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_
             (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
 
     rm_motor_120_control_hall_reset(p_instance_ctrl);
+
+    p_instance_ctrl->extSettings->active = 0;
 
     if (p_extended_cfg->p_motor_120_driver_instance != NULL)
     {
@@ -750,52 +791,73 @@ static void rm_motor_120_control_hall_pulses_counting(motor_120_control_hall_ins
        {
            case 2:
                if(p_ctrl->previous_u1_signal == 3)
-                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
-               else if(p_ctrl->previous_u1_signal == 6)
                    count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 6)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
                break;
 
            case 3:
                if(p_ctrl->previous_u1_signal == 1)
-                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
-               else if(p_ctrl->previous_u1_signal == 2)
                    count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 2)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
                break;
 
            case 1:
                if(p_ctrl->previous_u1_signal == 5)
-                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
-               else if(p_ctrl->previous_u1_signal == 3)
                    count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 3)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
                break;
 
            case 5:
                if(p_ctrl->previous_u1_signal == 4)
-                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
-               else if(p_ctrl->previous_u1_signal == 1)
                    count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 1)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
                break;
 
            case 4:
                if(p_ctrl->previous_u1_signal == 6)
-                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
-               else if(p_ctrl->previous_u1_signal == 5)
                    count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 5)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
                break;
 
            case 6:
                if(p_ctrl->previous_u1_signal == 2)
-                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
-               else if(p_ctrl->previous_u1_signal == 4)
                    count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 4)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
                break;
        }
     }
 
+    /*if(p_ctrl->extCfg->pulses_counting_reverse == 1)
+    {
+        if(count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
+            count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+        else if(count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
+            count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+    }*/
+
+    p_ctrl->real_direction = count_direction;
+
     if (count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
-        p_ctrl->extPulses->pulses++;
+    {
+        if(p_ctrl->extCfg->pulses_counting_reverse == 0)
+            p_ctrl->extPulses->pulses++;
+        else
+            p_ctrl->extPulses->pulses--;
+    }
+
     else if (count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
-        p_ctrl->extPulses->pulses--;
+    {
+        if(p_ctrl->extCfg->pulses_counting_reverse == 0)
+            p_ctrl->extPulses->pulses--;
+        else
+            p_ctrl->extPulses->pulses++;
+    }
 
     p_ctrl->previous_u1_signal = u1_signal;
 
@@ -904,7 +966,10 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
 
                     rm_motor_120_control_hall_pattern_set(p_instance_ctrl); /* Set voltage pattern */
 
-                    p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_BOOT;
+                    if (p_instance_ctrl->extSettings->active == 1)
+                       p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_DRIVE;
+                    else
+                       p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_BOOT;
                 }
 
                 break;
@@ -1086,6 +1151,13 @@ static void rm_motor_120_control_hall_reset (motor_120_control_hall_instance_ctr
     p_ctrl->u4_hall_intr_cnt = 0U;
 
     p_ctrl->u4_adc_interrupt_cnt = 0U;
+
+    p_ctrl->real_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+    p_ctrl->extSettings->active = 0;
+    p_ctrl->extSettings->voltage = 0.0;
+
+
+
 }                                      /* End of function rm_motor_120_control_hall_reset() */
 
 /***********************************************************************************************************************
@@ -1599,15 +1671,27 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
     {
         case MOTOR_120_CONTROL_VOLTAGE_REF_CONST:
         {
-            /* Set start reference voltage(constant) */
-            p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
-            if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+            if (p_ctrl->extSettings->active == 1)
             {
-                /* Set PI control parameter for start */
-                p_ctrl->f4_pi_ctrl_refi  = p_ctrl->f4_v_ref;
-                p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
+                if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                {
+                    /* Set PI control parameter for start */
+                    p_ctrl->f4_pi_ctrl_refi  = p_ctrl->f4_v_ref;
+                    p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                }
             }
-
+            else
+            {
+                /* Set start reference voltage(constant) */
+                p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
+                if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                {
+                    /* Set PI control parameter for start */
+                    p_ctrl->f4_pi_ctrl_refi  = p_ctrl->f4_v_ref;
+                    p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                }
+            }
             break;
         }
 
@@ -1615,14 +1699,26 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
         {
             if (p_ctrl->extSettings->active == 1)
             {
+                float delta = 0.0f;
                 if (p_ctrl->f4_v_ref > p_ctrl->extSettings->voltage)
-                    p_ctrl->f4_v_ref = p_ctrl->f4_v_ref - (float) 0.01f;
+                {
+                    delta = ((p_ctrl->f4_v_ref - p_ctrl->extSettings->voltage)>= 0.05f)?0.05f:0.01f;
+
+                    p_ctrl->f4_v_ref = p_ctrl->f4_v_ref - (float)delta;
+                }
                 else if (p_ctrl->f4_v_ref < p_ctrl->extSettings->voltage)
-                    p_ctrl->f4_v_ref = p_ctrl->f4_v_ref + (float) 0.01f;
+                {
+                    delta = ((p_ctrl->extSettings->voltage - p_ctrl->f4_v_ref)>= 0.05f)?0.05f:0.01f;
+
+                    p_ctrl->f4_v_ref = p_ctrl->f4_v_ref + (float) delta;
+                }
+
+
+
 
                 f4_temp = p_ctrl->f4_v_ref;
                 p_ctrl->f4_v_ref = rm_motor_120_control_hall_limitf (f4_temp, p_ctrl->p_cfg->f4_max_drive_v,
-                                                                     p_ctrl->p_cfg->f4_min_drive_v);
+                                                                     0);
 
                 p_ctrl->u4_cnt_speed_pi++;
                 if (p_ctrl->p_cfg->u4_speed_pi_decimation < p_ctrl->u4_cnt_speed_pi)

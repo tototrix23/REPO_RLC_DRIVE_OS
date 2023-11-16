@@ -5,8 +5,9 @@
  *      Author: Ch.Leclercq
  */
 #include "remotectrl.h"
+#include <motor/motor.h>
 #include <motor/drive_mode.h>
-
+#include <motor/motors_errors.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_NONE
 #undef  LOG_MODULE
@@ -53,6 +54,7 @@ return_t remotectrl_enter_manual(void)
 
 return_t remotectrl_exit_manual(void)
 {
+    motors_instance.error = MOTORS_ERROR_NONE;
     LOG_D(LOG_STD,"Exit manual mode");
     set_drive_mode(MOTOR_INIT_MODE);
     return X_RET_OK;

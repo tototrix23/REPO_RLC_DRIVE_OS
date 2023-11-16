@@ -13,7 +13,7 @@
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
-#define LOG_MODULE    "drive"
+#define LOG_MODULE    "DRIVE"
 
 timer_instance_t mot0_g_timer0;
 timer_cfg_t mot0_g_timer0_cfg;
@@ -115,6 +115,7 @@ void motor_structures_init(void)
     motor0.motor_ctrl_instance = &g_mot_120_degree0;
     motor0.motor_driver_instance = &g_mot_120_driver0;
     motor0.motor_hall_instance = &g_mot_120_control_hall0;
+    motor0.hall_vars = (motor_120_control_hall_instance_ctrl_t *)(&g_mot_120_control_hall0_ctrl);
 
 
     //---------------------------------------------------------------------
@@ -169,7 +170,7 @@ void motor_structures_init(void)
     motor1.motor_ctrl_instance = &g_mot_120_degree1;
     motor1.motor_driver_instance = &g_mot_120_driver1;
     motor1.motor_hall_instance = &g_mot_120_control_hall1;
-
+    motor1.hall_vars = (motor_120_control_hall_instance_ctrl_t *)(&g_mot_120_control_hall1_ctrl);
 
     motors_instance.motorH = &motor0;
     motors_instance.motorL = &motor1;
@@ -247,12 +248,29 @@ return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res)
             }
             else
             {
-            	motor_120_control_cfg_t *pcfg = (motor_120_control_cfg_t*)(mot_inst->p_cfg);
+                float speedGet;
+                mot_inst->p_api->speedGet(mot_inst->p_ctrl,&speedGet);
+
+                float speedSet  =p_instance_ctrl->f4_ref_speed_rad/p_instance_ctrl->f_rpm2rad;
+
+                float cmp = fabsf(speedSet - speedGet);
+
+                //LOG_D(LOG_STD,"%d  %d",(int32_t)(speedSet),(int32_t)(speedGet));
+
+
+                if(cmp <= 50.0)
+                    *res = TRUE;
+                else
+                    *res = FALSE;
+
+
+            	/*motor_120_control_cfg_t *pcfg = (motor_120_control_cfg_t*)(mot_inst->p_cfg);
             	if( (p_instance_ctrl->f4_v_ref <= pcfg->f4_min_drive_v+0.2f) ||
                     (p_instance_ctrl->f4_v_ref >= pcfg->f4_max_drive_v-0.2f))
             	*res = TRUE;
             	else
-                *res = FALSE;
+                *res = FALSE;*/
+
             }
         }
     }

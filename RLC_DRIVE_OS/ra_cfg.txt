@@ -974,7 +974,7 @@ FSP Configuration
       General: Limit of over current (A): 12.0
       General: Limit of over voltage (V): 60.0
       General: Limit of over speed (rpm): 3500.0
-      General: Limit of low voltage (V): 14.0
+      General: Limit of low voltage (V): 6.0
       Interrupts: Callback: mtr0_callback_120_degree
       
       Instance "120-degree conduction control with Hall sensors (rm_motor_120_control_hall)"
@@ -989,11 +989,11 @@ FSP Configuration
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
-        General: Step of speed reference change: 0.2
+        General: Step of speed reference change: 1.0
         General: Start reference voltage (V): 6.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
-        General: Minimum limit speed (rpm): 300
+        General: Minimum limit speed (rpm): 150
         General: PI control KP: 0.02
         General: PI control KI: 0.0005
         General: PI control limit: 24.0
@@ -1884,7 +1884,7 @@ FSP Configuration
       General: Limit of over current (A): 12.0
       General: Limit of over voltage (V): 60.0
       General: Limit of over speed (rpm): 3500.0
-      General: Limit of low voltage (V): 14.0
+      General: Limit of low voltage (V): 6.0
       Interrupts: Callback: mtr1_callback_120_degree
       
       Instance "120-degree conduction control with Hall sensors (rm_motor_120_control_hall)"
@@ -1903,7 +1903,7 @@ FSP Configuration
         General: Start reference voltage (V): 6.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
-        General: Minimum limit speed (rpm): 300
+        General: Minimum limit speed (rpm): 150
         General: PI control KP: 0.02
         General: PI control KI: 0.0005
         General: PI control limit: 24.0

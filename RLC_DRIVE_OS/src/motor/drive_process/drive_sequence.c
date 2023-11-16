@@ -52,10 +52,10 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
         }
     }
 
-
-    for(i=0;i<phase_count;i++)
+    uint8_t phase_index = 0;
+    for(phase_index=0;phase_index<phase_count;phase_index++)
     {
-        c_linked_list_get_by_index(sequence,i,(void**)&phase);
+        c_linked_list_get_by_index(sequence,phase_index,(void**)&phase);
 
 
         for (i = 0; i < 2; i++)
@@ -72,19 +72,21 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                 break;
 
             case MOTOR_120_DEGREE_CTRL_STATUS_BRAKE:
-
+                motors_instance.motors[i]->motor_ctrl_instance->p_api->reset(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                motor_wait_stop(motors_instance.motors[i]);
+                motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                 break;
 
             case MOTOR_120_DEGREE_CTRL_STATUS_ERROR:
-                   motors_instance.motors[i]->motor_ctrl_instance->p_api->reset(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
-                   motor_wait_stop(motors_instance.motors[i]);
-                   motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                motors_instance.motors[i]->motor_ctrl_instance->p_api->reset(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                motor_wait_stop(motors_instance.motors[i]);
+                motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                 break;
             }
             switch(phase->params_motors[i].mode)
             {
                 case MOTOR_REGULATED_MODE:
-                    if (c_math_float_equality(phase->params_motors[i].regulated.rpm,0.0f) == TRUE)
+                    if (c_math_float_equality(phase->params_motors[i].regulated.rpm,0.0f) == FALSE)
                         motors_instance.motors[i]->motor_ctrl_instance->p_api->speedSet(
                                 motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
                                 phase->params_motors[i].regulated.rpm);
@@ -95,7 +97,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
 
                 case MOTOR_NON_REGULATED_MODE:
                     if(phase->params_motors[i].non_regulated.settings.percent != 0)
-                    motors_instance.motors[i]->motor_ctrl_instance->p_api->speedSetOpenLoop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
+                    motors_instance.motors[i]->motor_ctrl_instance->p_api->settingsSet(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
                             phase->params_motors[i].non_regulated.settings);
                     else
                         motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(
@@ -103,14 +105,18 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                     break;
 
                 case MOTOR_BRAKE_MODE:
-                    motors_instance.motors[i]->motor_ctrl_instance->p_api->brake(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                    motors_instance.motors[i]->motor_ctrl_instance->p_api->brake(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,phase->params_motors[i].brake.mask);
                     break;
             }
         }
 
         // Petite temporisation pour ne pas avoir de faux positifs lors des verifications sur la vitesse
-        delay_ms(150);
+        if(phase->next_condition != MOTOR_NEXT_CONDITION_NONE)
+        {
+           delay_ms(150);
+        }
         h_time_update(&ts);
+
 
         bool_t end = FALSE;
         do
