@@ -925,7 +925,7 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_12_PIN_05"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_11_PIN_01"/>
       <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="200"/>
-      <property id="module.middleware.motor_120_control.f4_max_drive_v" value="21.0"/>
+      <property id="module.middleware.motor_120_control.f4_max_drive_v" value="22.0"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
@@ -967,7 +967,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_11_PIN_09"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="240"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="120"/>
       <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -983,7 +983,7 @@
       <property id="module.middleware.motor_120_driver.vw_ad_ch" value="ADC_CHANNEL_1"/>
       <property id="module.middleware.motor_120_driver.gtioca_stop_level" value="module.middleware.motor_120_driver.gtioca_stop_level.pin_level_low"/>
       <property id="module.middleware.motor_120_driver.gtiocb_stop_level" value="module.middleware.motor_120_driver.gtiocb_stop_level.pin_level_high"/>
-      <property id="module.middleware.motor_120_driver.max_duty" value="0.9375"/>
+      <property id="module.middleware.motor_120_driver.max_duty" value="0.95"/>
       <property id="module.middleware.motor_120_driver.callback" value="NULL"/>
     </module>
     <module id="module.driver.adc_on_adc_b.450326507">

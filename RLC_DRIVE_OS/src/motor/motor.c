@@ -203,10 +203,11 @@ void motor_init_fsp(void)
       R_GPT_THREE_PHASE_Start(g_three_phase1.p_ctrl);
       g_mot_120_degree0.p_api->reset(g_mot_120_degree0.p_ctrl);
       g_mot_120_degree1.p_api->reset(g_mot_120_degree1.p_ctrl);
-      //R_BSP_SoftwareDelay(20, BSP_DELAY_UNITS_MILLISECONDS);
 
-      motor0.motor_ctrl_instance->p_api->errorCheck(motor0.motor_ctrl_instance->p_ctrl,&motor0.status);
-      motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl,&motor1.status);
+      motor0.motor_ctrl_instance->p_api->statusGet(motor0.motor_ctrl_instance->p_ctrl,&motor0.status);
+      motor1.motor_ctrl_instance->p_api->statusGet(motor1.motor_ctrl_instance->p_ctrl,&motor1.status);
+      motor0.motor_ctrl_instance->p_api->errorCheck(motor0.motor_ctrl_instance->p_ctrl,&motor0.error);
+      motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl,&motor1.error);
 
 
 }
@@ -323,6 +324,7 @@ static void gpt_periodset (timer_ctrl_t * const p_ctrl, uint32_t const period_co
 
 void mtr0_callback_120_degree(motor_callback_args_t * p_args)
 {
+    motor0.motor_ctrl_instance->p_api->statusGet(motor0.motor_ctrl_instance->p_ctrl,&motor0.status);
     switch (p_args->event)
     {
         case MOTOR_CALLBACK_EVENT_ADC_FORWARD:
@@ -337,6 +339,9 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
             {
 
                 motor0.motor_ctrl_instance->p_api->errorCheck(motor0.motor_ctrl_instance->p_ctrl, &motor0.error);
+
+                if(motor0.error != 0x00)
+                    LOG_E(LOG_STD,"Motor0 error 0x%x",motor0.error);
             }
 
         }
@@ -368,6 +373,7 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
 
 void mtr1_callback_120_degree(motor_callback_args_t * p_args)
 {
+    motor1.motor_ctrl_instance->p_api->statusGet(motor1.motor_ctrl_instance->p_ctrl,&motor1.status);
     switch (p_args->event)
     {
         case MOTOR_CALLBACK_EVENT_ADC_FORWARD:
@@ -381,6 +387,9 @@ void mtr1_callback_120_degree(motor_callback_args_t * p_args)
             if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != motor1.status)
             {
                 motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl, &motor1.error);
+
+                if(motor0.error != 0x00)
+                    LOG_E(LOG_STD,"Motor1 error 0x%x",motor1.error);
             }
 
             //mtr_ics_interrupt_process();

@@ -30,6 +30,13 @@ static return_t init_strectch(void);
 static return_t init_enrh(void);
 static return_t init_enrl(void);
 static return_t init_poster(void);
+static uint16_t line = 0;
+
+static bool_t check_stop_request_nested(void)
+{
+    return mode_stop_order;
+}
+
 
 static bool_t check_stop_request(void)
 {
@@ -55,7 +62,7 @@ static bool_t check_stop_request(void)
 void init_mode_stop(void)
 {
     mode_stop_order = TRUE;
-    LOG_D(LOG_STD,"order to stop init mode");
+    LOG_D(LOG_STD,"order to stop init mode %d", line);
 }
 
 bool_t init_mode_is_running(void)
@@ -91,7 +98,8 @@ return_t init_mode_process(void) {
         }
         tx_thread_sleep(1);
     }
-    /*
+    LOG_I(LOG_STD,"Fin arrêt");
+
     //----------------------------------------------------------------------------------------------
     // Mise en tension des affiches
     //----------------------------------------------------------------------------------------------
@@ -107,18 +115,21 @@ return_t init_mode_process(void) {
     // Recherche bande mère haute
     //----------------------------------------------------------------------------------------------
     ret = init_enrl();
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;*/
+    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
     //----------------------------------------------------------------------------------------------
     // Positionnement sur 1ere affiche
     //----------------------------------------------------------------------------------------------
+    LOG_I(LOG_STD,"init_poster");
     ret = init_poster();
+    LOG_I(LOG_STD,"fin_init_poster");
     if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
     //----------------------------------------------------------------------------------------------
     // Fin
     //----------------------------------------------------------------------------------------------
-    LOG_I(LOG_STD,"INIT -> fin");
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
+
+    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    LOG_I(LOG_STD,"INIT -> fin");
 
     while(1)
     {
@@ -371,22 +382,20 @@ static return_t init_poster(void)
     h_time_update(&ts);
 
     int32_t pulsesH;
-
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
-
-
     motor_drive_sequence(&ptr->sequences.init.posterAccelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     h_time_get_elapsed(&ts, &ts2);
     volatile motor_120_control_instance_t *mot_inst = (motor_120_control_instance_t*)motors_instance.motorH->motor_hall_instance;
         volatile motor_120_control_hall_instance_ctrl_t * p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t *) (mot_inst->p_ctrl);
     LOG_D(LOG_STD,"elaspedH: %d  %d",ts2.ms,(int32_t)p_instance_ctrl->f4_v_ref);
 
-
+    float speed = p_instance_ctrl->f4_v_ref;
+    LOG_D(LOG_STD,"Speed %d mV",(int32_t)(speed*1000));
+    //motors_instance.motorH->motor_ctrl_instance->
     while(!end)
     {
         if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
-
         h_time_is_elapsed_ms(&ts, 5000, &ts_elasped);
         if(ts_elasped == TRUE)
         {
@@ -394,28 +403,27 @@ static return_t init_poster(void)
             motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_CHANGING_POSTER,F_RET_MOTOR_INIT_TIMEOUT_POSTER);
         }
-
         motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-        if(pulsesH >= 1600)
+        if(pulsesH >= 1865)
+        {
             end = TRUE;
+            LOG_D(LOG_STD,"Top1");
+        }
 
         tx_thread_sleep(1);
     }
     h_time_update(&ts);
     end=FALSE;
-    motor_drive_sequence(&ptr->sequences.init.posterDecelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    /*motor_drive_sequence(&ptr->sequences.init.posterDecelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     h_time_get_elapsed(&ts, &ts2);
-
-    LOG_D(LOG_STD,"elaspedL: %d  %d",ts2.ms,(int32_t)p_instance_ctrl->f4_v_ref);
-
+    LOG_D(LOG_STD,"elaspedL: %d  %d",ts2.ms,(int32_t)p_instance_ctrl->f4_v_ref);*/
 
 
 
 
-    while(!end)
+    /*while(!end)
     {
         if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
-
         h_time_is_elapsed_ms(&ts, 5000, &ts_elasped);
         if(ts_elasped == TRUE)
         {
@@ -423,16 +431,17 @@ static return_t init_poster(void)
             motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_CHANGING_POSTER,F_RET_MOTOR_INIT_TIMEOUT_POSTER);
         }
-
         motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-        if(pulsesH >= 1900)
+        if(pulsesH >= 1865)
+        {
+            LOG_D(LOG_STD,"Top2");
             end = TRUE;
+        }
 
         tx_thread_sleep(1);
-    }
+    }*/
     h_time_update(&ts);
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-
 
     return ret;
 }

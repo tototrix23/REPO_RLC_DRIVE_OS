@@ -984,7 +984,7 @@ FSP Configuration
         Hall sensor port V: BSP_IO_PORT_12_PIN_05
         Hall sensor port W: BSP_IO_PORT_11_PIN_01
         General: Timeout counts (msec): 200
-        General: Maximum voltage (V): 21.0
+        General: Maximum voltage (V): 22.0
         General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
@@ -1111,7 +1111,7 @@ FSP Configuration
           General: PWM output port WN: BSP_IO_PORT_11_PIN_09
           General: PWM timer frequency (MHz): 120
           General: PWM carrier period (Microseconds): 50
-          General: Dead time (Raw counts): 240
+          General: Dead time (Raw counts): 120
           General: Current range (A): 33.0
           General: Voltage range (V): 33.33
           General: Resolution of A/D conversion: 0xFFF
@@ -1127,7 +1127,7 @@ FSP Configuration
           General: A/D conversion channel for W phase voltage: ADC_CHANNEL_1
           General: GTIOCA stop level: Pin Level Low
           General: GTIOCB stop level: Pin Level High
-          Modulation: Maximum duty: 0.9375
+          Modulation: Maximum duty: 0.95
           Interrupts: Callback: rm_motor_120_control_hall_driver_callback
           
           Instance "g_adc0 ADC Driver on r_adc_b"
@@ -1732,8 +1732,8 @@ FSP Configuration
             General: Buffer Mode: Single Buffer
             General: GTIOCA Stop Level: Pin Level Low
             General: GTIOCB Stop Level: Pin Level High
-            Extra Features: Dead Time: Dead Time Count Up (Raw Counts): 240
-            Extra Features: Dead Time: Dead Time Count Down (Raw Counts) (GPTE/GPTEH only): 240
+            Extra Features: Dead Time: Dead Time Count Up (Raw Counts): 120
+            Extra Features: Dead Time: Dead Time Count Down (Raw Counts) (GPTE/GPTEH only): 120
             
             Instance "g_timer0 Timer, General PWM (r_gpt)"
               General: Name: g_timer0
@@ -1773,8 +1773,8 @@ FSP Configuration
               Extra Features: Output Disable: POEG Link: POEG Channel 3
               Extra Features: Output Disable: Output Disable POEG Trigger: 
               Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): Trigger Event A/D Converter Start Request A During Down Counting
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 240
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 240
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 120
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 120
               Extra Features: ADC Trigger (Channels with GTADTRA only): ADC A Compare Match (Raw Counts): 0
               Extra Features: ADC Trigger (Channels with GTADTRB only): ADC B Compare Match (Raw Counts): 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
@@ -1821,8 +1821,8 @@ FSP Configuration
               Extra Features: Output Disable: POEG Link: POEG Channel 3
               Extra Features: Output Disable: Output Disable POEG Trigger: 
               Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 240
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 240
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 120
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 120
               Extra Features: ADC Trigger (Channels with GTADTRA only): ADC A Compare Match (Raw Counts): 0
               Extra Features: ADC Trigger (Channels with GTADTRB only): ADC B Compare Match (Raw Counts): 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
@@ -1869,8 +1869,8 @@ FSP Configuration
               Extra Features: Output Disable: POEG Link: POEG Channel 3
               Extra Features: Output Disable: Output Disable POEG Trigger: 
               Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 240
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 240
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 120
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 120
               Extra Features: ADC Trigger (Channels with GTADTRA only): ADC A Compare Match (Raw Counts): 0
               Extra Features: ADC Trigger (Channels with GTADTRB only): ADC B Compare Match (Raw Counts): 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None

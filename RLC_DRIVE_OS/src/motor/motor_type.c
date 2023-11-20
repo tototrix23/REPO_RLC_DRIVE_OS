@@ -131,8 +131,8 @@ void motor_itoh_brake_init(void)
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
     phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
-    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 0;
-    phase->params_motors[0].non_regulated.settings.percent = 50;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 200;
+    phase->params_motors[0].non_regulated.settings.percent = 60;
 
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
@@ -156,8 +156,8 @@ void motor_itoh_brake_init(void)
 
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
-    phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 0;
-    phase->params_motors[1].non_regulated.settings.percent = -50;
+    phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 200;
+    phase->params_motors[1].non_regulated.settings.percent = -60;
     c_linked_list_append(&ptr->sequences.manual.enrl,phase);
 
     // ENRL STOP
@@ -166,7 +166,7 @@ void motor_itoh_brake_init(void)
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
     phase->params_motors[0].mode = MOTOR_BRAKE_MODE;
-    phase->params_motors[0].brake.mask = 0x80;
+    phase->params_motors[0].brake.mask = 0x04;
 
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
@@ -241,7 +241,7 @@ void motor_itoh_brake_init(void)
     C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
     memset(phase,0x00,sizeof(motor_phase_t));
     phase->condition_timeout_ms = 0;
-    phase->post_tempo_ms = 500;
+    phase->post_tempo_ms = 1500;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
     phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
@@ -260,7 +260,7 @@ void motor_itoh_brake_init(void)
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
     phase->params_motors[0].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[0].regulated.rpm = 600.0f;
+    phase->params_motors[0].regulated.rpm = 1000.0f;
 
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
@@ -280,7 +280,7 @@ void motor_itoh_brake_init(void)
     phase->params_motors[0].non_regulated.settings.percent = -15;
 
     phase->params_motors[1].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[1].regulated.rpm = -600.0f;
+    phase->params_motors[1].regulated.rpm = -1000.0f;
     c_linked_list_append(&ptr->sequences.init.enrl,phase);
 
 
@@ -290,7 +290,7 @@ void motor_itoh_brake_init(void)
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_SPEEDH;
     phase->params_motors[0].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[0].regulated.rpm = 1600.0f;
+    phase->params_motors[0].regulated.rpm = 1900.0f;
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
     phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 0;
@@ -303,9 +303,9 @@ void motor_itoh_brake_init(void)
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_SPEEDH;
     phase->params_motors[0].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[0].regulated.rpm = 300.0f;
+    phase->params_motors[0].regulated.rpm = 1000.0f;
     phase->params_motors[1].mode = MOTOR_BRAKE_MODE;
-    phase->params_motors[1].brake.mask = 0x80;
+    phase->params_motors[1].brake.mask = 0x04;
 
     c_linked_list_append(&ptr->sequences.init.posterDecelerate,phase);
 
