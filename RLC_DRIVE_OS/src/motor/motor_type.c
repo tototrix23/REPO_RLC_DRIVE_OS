@@ -290,7 +290,7 @@ void motor_itoh_brake_init(void)
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_SPEEDH;
     phase->params_motors[0].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[0].regulated.rpm = 1900.0f;
+    phase->params_motors[0].regulated.rpm = 1700.0f;//1900.0f;
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
     phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 0;
@@ -314,8 +314,10 @@ void motor_itoh_brake_init(void)
     memset(phase,0x00,sizeof(motor_phase_t));
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
-    phase->params_motors[0].mode = MOTOR_BRAKE_MODE;
-    phase->params_motors[0].brake.mask = 0x0;
+    phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;//MOTOR_BRAKE_MODE;
+    phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 0;
+    phase->params_motors[0].non_regulated.settings.percent = 5;
     phase->params_motors[1].mode = MOTOR_BRAKE_MODE;
     phase->params_motors[1].brake.mask = 0x0;
     c_linked_list_append(&ptr->sequences.init.posterStop,phase);

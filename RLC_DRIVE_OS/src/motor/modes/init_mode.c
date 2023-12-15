@@ -82,6 +82,7 @@ return_t init_mode_process(void) {
     mode_stop_order = FALSE;
     motors_instance.error = MOTORS_ERROR_NONE;
     LOG_I(LOG_STD,"INIT -> début");
+    /*
     //----------------------------------------------------------------------------------------------
     // Arrêt des moteurs
     //----------------------------------------------------------------------------------------------
@@ -116,6 +117,7 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
     ret = init_enrl();
     if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    */
     //----------------------------------------------------------------------------------------------
     // Positionnement sur 1ere affiche
     //----------------------------------------------------------------------------------------------
@@ -129,8 +131,11 @@ return_t init_mode_process(void) {
 
 
     motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     LOG_I(LOG_STD,"INIT -> fin");
-
+    int32_t pulsesH;
+    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
+    LOG_I(LOG_STD,"pulsesH %d",pulsesH);
     while(1)
     {
         if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
@@ -377,6 +382,7 @@ static return_t init_poster(void)
     sequence_result_t sequence_result;
     c_timespan_t ts;
     c_timespan_t ts2;
+    c_timespan_t ts3;
     bool_t end = FALSE;
     bool_t ts_elasped;
     h_time_update(&ts);
@@ -404,10 +410,15 @@ static return_t init_poster(void)
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_CHANGING_POSTER,F_RET_MOTOR_INIT_TIMEOUT_POSTER);
         }
         motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-        if(pulsesH >= 1865)
+        if(pulsesH >= 1850)
         {
+            LOG_D(LOG_STD,"%d",pulsesH);
+
+            motor_log_speed(motors_instance.motorH);
+            h_time_get_elapsed(&ts, &ts3);
+            LOG_D(LOG_STD,"elaspedH: %d ",ts3.ms);
             end = TRUE;
-            LOG_D(LOG_STD,"Top1");
+
         }
 
         tx_thread_sleep(1);
@@ -441,6 +452,7 @@ static return_t init_poster(void)
         tx_thread_sleep(1);
     }*/
     h_time_update(&ts);
+    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
     return ret;

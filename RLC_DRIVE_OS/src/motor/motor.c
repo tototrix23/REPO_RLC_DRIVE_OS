@@ -212,6 +212,23 @@ void motor_init_fsp(void)
 
 }
 
+void motor_log_speed(st_motor_t *mot)
+{
+    volatile motor_120_control_instance_t *mot_inst = (motor_120_control_instance_t*)mot->motor_hall_instance;
+    volatile motor_120_control_hall_instance_ctrl_t * p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t *) (mot_inst->p_ctrl);
+    float speedGet=0.0;
+    float speedSet=0.0;
+    mot_inst->p_api->speedGet(mot_inst->p_ctrl,&speedGet);
+    speedSet  =p_instance_ctrl->f4_ref_speed_rad/p_instance_ctrl->f_rpm2rad;
+    LOG_D(LOG_STD,"speedSet:%f speedGet:%f Voltage:%d mV",speedSet,speedGet,(int32_t)(p_instance_ctrl->f4_v_ref*1000));
+
+    motor_120_driver_instance_t    * p_instance_driver = (motor_120_driver_instance_t *) mot->motor_driver_instance;
+    motor_120_driver_instance_ctrl_t *p_instance_driver_ctrl = (motor_120_driver_instance_ctrl_t *)p_instance_driver->p_ctrl;
+    LOG_D(LOG_STD,"vadc:%f ",p_instance_driver_ctrl->f_vdc_ad);
+
+
+}
+
 return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res)
 {
     return_t ret = X_RET_OK;
@@ -224,6 +241,11 @@ return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res)
 	volatile motor_120_control_instance_t *mot_inst = (motor_120_control_instance_t*)mot->motor_hall_instance;
 
     volatile motor_120_control_hall_instance_ctrl_t * p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t *) (mot_inst->p_ctrl);
+
+    const float delta_value = 0.003f;
+    float speedGet=0.0;
+    float speedSet=0.0;
+    motor_120_control_cfg_t *pcfg = 0;
 
     if(p_instance_ctrl->active == MOTOR_120_CONTROL_STATUS_ACTIVE)
     {
@@ -241,36 +263,48 @@ return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res)
         }
         else
         {
-            float delta = p_instance_ctrl->f4_ref_speed_rad * 0.02f;
+
+            //LOG_D(LOG_STD,"delta:%f sref:%f  s:%f vref:%f",p_instance_ctrl->f4_ref_speed_rad * 0.01f,p_instance_ctrl->f4_ref_speed_rad,p_instance_ctrl->f4_speed_rad,p_instance_ctrl->f4_v_ref);
+            //tx_thread_sleep(100);
+            float delta = p_instance_ctrl->f4_ref_speed_rad * delta_value;
             if(  (p_instance_ctrl->f4_speed_rad >= (p_instance_ctrl->f4_ref_speed_rad-delta)) &&
                  (p_instance_ctrl->f4_speed_rad <= (p_instance_ctrl->f4_ref_speed_rad+delta)))
             {
+                LOG_D(LOG_STD,"!!!! delta:%f sref:%f  s:%f vref:%f",p_instance_ctrl->f4_ref_speed_rad * delta_value,p_instance_ctrl->f4_ref_speed_rad,p_instance_ctrl->f4_speed_rad,p_instance_ctrl->f4_v_ref);
                 *res = TRUE;
             }
             else
             {
-                float speedGet;
+
                 mot_inst->p_api->speedGet(mot_inst->p_ctrl,&speedGet);
 
-                float speedSet  =p_instance_ctrl->f4_ref_speed_rad/p_instance_ctrl->f_rpm2rad;
+                speedSet  =p_instance_ctrl->f4_ref_speed_rad/p_instance_ctrl->f_rpm2rad;
 
-                float cmp = fabsf(speedSet - speedGet);
-
-                //LOG_D(LOG_STD,"%d  %d",(int32_t)(speedSet),(int32_t)(speedGet));
+                /*float cmp = fabsf(speedSet - speedGet);
 
 
                 if(cmp <= 50.0)
+                {
+                    LOG_D(LOG_STD,"speedSet:%f speedGet:%f  s:%f",speedSet,speedGet);
                     *res = TRUE;
+                }
+
                 else
-                    *res = FALSE;
+                    *res = FALSE;*/
 
+                //LOG_D(LOG_STD,"speedSet:%f speedGet:%f  s:%f",speedSet,speedGet);
+            	pcfg = (motor_120_control_cfg_t*)(mot_inst->p_cfg);
+            	//LOG_D(LOG_STD,"vref:%f vmax:%f",p_instance_ctrl->f4_v_ref,pcfg->f4_max_drive_v);
 
-            	/*motor_120_control_cfg_t *pcfg = (motor_120_control_cfg_t*)(mot_inst->p_cfg);
-            	if( (p_instance_ctrl->f4_v_ref <= pcfg->f4_min_drive_v+0.2f) ||
-                    (p_instance_ctrl->f4_v_ref >= pcfg->f4_max_drive_v-0.2f))
-            	*res = TRUE;
+            	if( (p_instance_ctrl->f4_v_ref <= pcfg->f4_min_drive_v+0.05f) ||
+                    (p_instance_ctrl->f4_v_ref >= pcfg->f4_max_drive_v-0.05f))
+            	{
+            	    LOG_D(LOG_STD,"!!! vref:%f vmax:%f",p_instance_ctrl->f4_v_ref,pcfg->f4_max_drive_v);
+            	    *res = TRUE;
+            	}
+
             	else
-                *res = FALSE;*/
+                *res = FALSE;
 
             }
         }
@@ -279,6 +313,20 @@ return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res)
     {
         *res = FALSE;
     }
+
+
+    if(*res == TRUE)
+    {
+        pcfg = (motor_120_control_cfg_t*)(mot_inst->p_cfg);
+        mot_inst->p_api->speedGet(mot_inst->p_ctrl,&speedGet);
+        speedSet  =p_instance_ctrl->f4_ref_speed_rad/p_instance_ctrl->f_rpm2rad;
+
+        LOG_D(LOG_STD,"delta:%f sref:%f  s:%f vref:%f",p_instance_ctrl->f4_ref_speed_rad * delta_value,p_instance_ctrl->f4_ref_speed_rad,p_instance_ctrl->f4_speed_rad,p_instance_ctrl->f4_v_ref);
+        LOG_D(LOG_STD,"speedSet:%f speedGet:%f  s:%f",speedSet,speedGet);
+        LOG_D(LOG_STD,"vref:%f vmax:%f",p_instance_ctrl->f4_v_ref,pcfg->f4_max_drive_v);
+    }
+
+
 
     return ret;
 }
@@ -384,13 +432,21 @@ void mtr1_callback_120_degree(motor_callback_args_t * p_args)
 
         case MOTOR_CALLBACK_EVENT_ADC_BACKWARD:
         {
-            if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != motor1.status)
+
+            uint16_t current_error_code = motor1.error;
+            motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl, &motor1.error);
+            if(motor1.error != current_error_code && motor1.error != 0x00)
+            {
+                LOG_E(LOG_STD,"Motor1 error 0x%x",motor1.error);
+            }
+
+            /*if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != motor1.status)
             {
                 motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl, &motor1.error);
 
                 if(motor0.error != 0x00)
                     LOG_E(LOG_STD,"Motor1 error 0x%x",motor1.error);
-            }
+            }*/
 
             //mtr_ics_interrupt_process();
         }

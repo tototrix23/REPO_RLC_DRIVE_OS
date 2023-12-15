@@ -8,49 +8,9 @@
 #include <_core/c_timespan/c_timespan.h>
 #include <_hal/h_time/h_time.h>
 #include <_hal/h_log/h_log.h>
+#include <_target/t_delay.h>
 #include "impl_log.h"
 
-//Reset
-#define reset "\e[0m"
-
-#define RTT_CTRL_RESET                "\e[0m"         // Reset to default colors
-#define RTT_CTRL_CLEAR                "\e[2J"         // Clear screen, reposition cursor to top left
-
-#define RTT_CTRL_TEXT_BLACK           "\e[2;30m"
-#define RTT_CTRL_TEXT_RED             "\e[2;31m"
-#define RTT_CTRL_TEXT_GREEN           "\e[2;32m"
-#define RTT_CTRL_TEXT_YELLOW          "\e[2;33m"
-#define RTT_CTRL_TEXT_BLUE            "\e[2;34m"
-#define RTT_CTRL_TEXT_MAGENTA         "\e[2;35m"
-#define RTT_CTRL_TEXT_CYAN            "\e[2;36m"
-#define RTT_CTRL_TEXT_WHITE           "\e[2;37m"
-
-#define RTT_CTRL_TEXT_BRIGHT_BLACK    "\e[1;30m"
-#define RTT_CTRL_TEXT_BRIGHT_RED      "\e[1;31m"
-#define RTT_CTRL_TEXT_BRIGHT_GREEN    "\e[1;32m"
-#define RTT_CTRL_TEXT_BRIGHT_YELLOW   "\e[1;33m"
-#define RTT_CTRL_TEXT_BRIGHT_BLUE     "\e[1;34m"
-#define RTT_CTRL_TEXT_BRIGHT_MAGENTA  "\e[1;35m"
-#define RTT_CTRL_TEXT_BRIGHT_CYAN     "\e[1;36m"
-#define RTT_CTRL_TEXT_BRIGHT_WHITE    "\e[1;37m"
-
-#define RTT_CTRL_BG_BLACK             "\e[24;40m"
-#define RTT_CTRL_BG_RED               "\e[24;41m"
-#define RTT_CTRL_BG_GREEN             "\e[24;42m"
-#define RTT_CTRL_BG_YELLOW            "\e[24;43m"
-#define RTT_CTRL_BG_BLUE              "\e[24;44m"
-#define RTT_CTRL_BG_MAGENTA           "\e[24;45m"
-#define RTT_CTRL_BG_CYAN              "\e[24;46m"
-#define RTT_CTRL_BG_WHITE             "\e[24;47m"
-
-#define RTT_CTRL_BG_BRIGHT_BLACK      "\e[4;40m"
-#define RTT_CTRL_BG_BRIGHT_RED        "\e[4;41m"
-#define RTT_CTRL_BG_BRIGHT_GREEN      "\e[4;42m"
-#define RTT_CTRL_BG_BRIGHT_YELLOW     "\e[4;43m"
-#define RTT_CTRL_BG_BRIGHT_BLUE       "\e[4;44m"
-#define RTT_CTRL_BG_BRIGHT_MAGENTA    "\e[4;45m"
-#define RTT_CTRL_BG_BRIGHT_CYAN       "\e[4;46m"
-#define RTT_CTRL_BG_BRIGHT_WHITE      "\e[4;47m"
 
 
 void impl_log_init(void);
@@ -64,7 +24,7 @@ struct tx_info_t{
     return_t code;
 };
 
-static struct tx_info_t tx_info;
+volatile struct tx_info_t tx_info;
 
 
 void impl_log_init(void)
@@ -187,49 +147,95 @@ void impl_log_write(uint8_t mode,uint8_t color,char*module,  char* file,const ch
 
 }
 
+
+
+
 void impl_log_write_e(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
-    tx_mutex_get(&g_mutex_log,TX_WAIT_FOREVER);
-    static char buffer_args[64];
-    memset(buffer_args, 0, sizeof(buffer_args));
-    //vsprintf(buffer_args, s, argp);
-    vsnprintf(buffer_args,sizeof(buffer_args)-1, s, argp);
-    impl_log_write(mode,LOG_COLOR_ERROR,module, file, func, line, buffer_args);
-    tx_mutex_put(&g_mutex_log);
+    PARAMETER_NOT_USED(file);
+    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    if(ptr != 0x00)
+    {
+        memset(ptr, 0, sizeof(log_t));
+        vsnprintf(ptr->text,sizeof(ptr->text)-1, s, argp);
+        strcpy(ptr->func,func);
+        strcpy(ptr->module,module);
+        ptr->line = line;
+        ptr->mode = mode;
+        ptr->color = LOG_COLOR_ERROR;
+
+        uint32_t status = tx_queue_send(&log_queue, &ptr, TX_NO_WAIT);
+        if(status != TX_SUCCESS)
+        {
+            free(ptr);
+        }
+    }
 }
 
 void impl_log_write_w(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
-    tx_mutex_get(&g_mutex_log,TX_WAIT_FOREVER);
-    static char buffer_args[64];
-    memset(buffer_args, 0, sizeof(buffer_args));
-    //vsprintf(buffer_args, s, argp);
-    vsnprintf(buffer_args,sizeof(buffer_args)-1, s, argp);
-    impl_log_write(mode,LOG_COLOR_WARN,module, file, func, line, buffer_args);
-    tx_mutex_put(&g_mutex_log);
+    PARAMETER_NOT_USED(file);
+    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    if(ptr != 0x00)
+    {
+        memset(ptr, 0, sizeof(log_t));
+        vsnprintf(ptr->text,sizeof(ptr->text)-1, s, argp);
+        strcpy(ptr->func,func);
+        strcpy(ptr->module,module);
+        ptr->line = line;
+        ptr->mode = mode;
+        ptr->color = LOG_COLOR_WARN;
+
+        uint32_t status = tx_queue_send(&log_queue, &ptr, TX_NO_WAIT);
+        if(status != TX_SUCCESS)
+        {
+            free(ptr);
+        }
+    }
 }
 
 void impl_log_write_i(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
-    tx_mutex_get(&g_mutex_log,TX_WAIT_FOREVER);
-    static char buffer_args[64];
-    memset(buffer_args, 0, sizeof(buffer_args));
-    //vsprintf(buffer_args, s, argp);
-    vsnprintf(buffer_args,sizeof(buffer_args)-1, s, argp);
-    impl_log_write(mode,LOG_COLOR_INFO,module, file, func, line, buffer_args);
-    tx_mutex_put(&g_mutex_log);
+    PARAMETER_NOT_USED(file);
+    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    if(ptr != 0x00)
+    {
+        memset(ptr, 0, sizeof(log_t));
+        vsnprintf(ptr->text,sizeof(ptr->text)-1, s, argp);
+        strcpy(ptr->func,func);
+        strcpy(ptr->module,module);
+        ptr->line = line;
+        ptr->mode = mode;
+        ptr->color = LOG_COLOR_INFO;
+
+        uint32_t status = tx_queue_send(&log_queue, &ptr, TX_NO_WAIT);
+        if(status != TX_SUCCESS)
+        {
+            free(ptr);
+        }
+    }
 }
 
 void impl_log_write_d(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
-    tx_mutex_get(&g_mutex_log,TX_WAIT_FOREVER);
-    static char buffer_args[64];
-    memset(buffer_args, 0, sizeof(buffer_args));
-    //vsprintf(buffer_args, s, argp);
-    vsnprintf(buffer_args,sizeof(buffer_args)-1, s, argp);
-    impl_log_write(mode,LOG_COLOR_DEBUG,module, file, func, line, buffer_args);
-    tx_mutex_put(&g_mutex_log);
+    PARAMETER_NOT_USED(file);
+    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    if(ptr != 0x00)
+    {
+        memset(ptr, 0, sizeof(log_t));
+        vsnprintf(ptr->text,sizeof(ptr->text)-1, s, argp);
+        strcpy(ptr->func,func);
+        strcpy(ptr->module,module);
+        ptr->line = line;
+        ptr->mode = mode;
+        ptr->color = LOG_COLOR_DEBUG;
 
+        uint32_t status = tx_queue_send(&log_queue, &ptr, TX_NO_WAIT);
+        if(status != TX_SUCCESS)
+        {
+            free(ptr);
+        }
+    }
 }
 
 
@@ -241,18 +247,21 @@ void uart_log_callback(uart_callback_args_t *p_args)
     }
     else if(UART_EVENT_TX_DATA_EMPTY == p_args->event)
     {
-        if(tx_info.in_progress == TRUE)
-        {
-            tx_info.in_progress = FALSE;
-            tx_info.code = X_RET_OK;
-        }
+        tx_info.in_progress = FALSE;
+        tx_info.code = X_RET_OK;
+
     }
     else if((UART_EVENT_ERR_PARITY == p_args->event || UART_EVENT_ERR_FRAMING == p_args->event ||
             UART_EVENT_ERR_OVERFLOW == p_args->event || UART_EVENT_BREAK_DETECT == p_args->event)
-            && tx_info.in_progress == TRUE)
+            /*&& tx_info.in_progress == TRUE*/)
     {
         tx_info.in_progress = FALSE;
         tx_info.code = X_RET_ERR_GENERIC;
+    }
+    else
+    {
+        tx_info.in_progress = FALSE;
+        tx_info.code = X_RET_OK;
     }
 
 }

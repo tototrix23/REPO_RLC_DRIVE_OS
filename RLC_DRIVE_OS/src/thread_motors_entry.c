@@ -35,6 +35,15 @@ void thread_motors_entry(void)
 {
     volatile return_t ret = X_RET_OK;
 
+
+    /*uint32_t cnt=0;
+    while(1)
+    {
+        LOG_E(LOG_STD,"Test %d",cnt);
+        cnt++;
+        tx_thread_sleep(100);
+    }*/
+
     // Initialisation POEG
     R_POEG_Open(g_poeg0.p_ctrl, g_poeg0.p_cfg);
 

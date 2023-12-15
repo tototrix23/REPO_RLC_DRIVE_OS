@@ -79,6 +79,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
 
             case MOTOR_120_DEGREE_CTRL_STATUS_ERROR:
                 motors_instance.motors[i]->motor_ctrl_instance->p_api->reset(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                motors_instance.motors[i]->motor_ctrl_instance->p_api->statusGet(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl, (uint8_t *)&motors_instance.motors[i]->status);
                 motor_wait_stop(motors_instance.motors[i]);
                 motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                 break;
@@ -186,6 +187,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
 
                 case MOTOR_NEXT_CONDITION_SPEEDH:
                     if (speeds_achieved[0] == TRUE) {
+
                         end = TRUE;
                     }
                     break;

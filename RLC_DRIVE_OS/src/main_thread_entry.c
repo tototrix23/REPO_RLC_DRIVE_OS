@@ -1,4 +1,5 @@
 #include "main_thread.h"
+#include "log_thread.h"
 
 #include <hal_data.h>
 #include <_core/c_common.h>
@@ -18,6 +19,8 @@
 #define LOG_MODULE    "main thread"
 
 extern TX_THREAD thread_motors;
+extern TX_THREAD log_thread;
+
 i_time_t i_time_interface_t;
 
 
@@ -34,25 +37,47 @@ void main_thread_entry(void)
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
     h_time_init(&i_time_interface_t);
 
+    // Demarrage du Thread dédié aux LOGs
+    tx_thread_resume(&log_thread);
 
+
+
+
+
+
+    // Initialisation de la partie moteurs (partie logicielle)
     motor_structures_init();
     motor_init_type(MOTOR_TYPE_RM_ITOH_BRAKE);
+
+    // Initialisation de la partie ADC
     ret = adc_init();
     if(ret != X_RET_OK){
         LOG_E(LOG_STD,"INIT ADC ERROR");}
     else{
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
+    // Initialisation de la partie moteurs (partie API)
     motor_init_fsp();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
 
-
+    // Demarrage de la partie moteur
     tx_thread_resume(&thread_motors);
     LOG_D(LOG_STD,"Start");
 
     c_timespan_t ts;
     h_time_update(&ts);
+
+
+
+    /*uint32_t cnt=0;
+    while(1)
+    {
+        LOG_D(LOG_STD,"Test %d",cnt);
+        cnt++;
+        tx_thread_sleep(100);
+    }*/
+
     /* TODO: add your own code here */
     while (1)
     {

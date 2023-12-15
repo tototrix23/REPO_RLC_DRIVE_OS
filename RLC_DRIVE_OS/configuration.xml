@@ -83,7 +83,7 @@
     </config>
     <config id="config.bsp.ra">
       <property id="config.bsp.common.main" value="0x1000"/>
-      <property id="config.bsp.common.heap" value="0"/>
+      <property id="config.bsp.common.heap" value="0x1000"/>
       <property id="config.bsp.common.vcc" value="3300"/>
       <property id="config.bsp.common.checking" value="config.bsp.common.checking.disabled"/>
       <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
@@ -261,9 +261,9 @@
       <property id="module.driver.uart.rs485.de_negation_time" value="1"/>
       <property id="module.driver.uart.callback" value="uart_log_callback"/>
       <property id="module.driver.uart.rxi_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.uart.txi_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.uart.tei_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.uart.eri_ipl" value="board.icu.common.irq.priority12"/>
+      <property id="module.driver.uart.txi_ipl" value="board.icu.common.irq.priority2"/>
+      <property id="module.driver.uart.tei_ipl" value="board.icu.common.irq.priority2"/>
+      <property id="module.driver.uart.eri_ipl" value="board.icu.common.irq.priority2"/>
     </module>
     <module id="module.driver.poeg_on_poeg.1023839904">
       <property id="module.driver.poeg.name" value="g_poeg0"/>
@@ -925,7 +925,7 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_12_PIN_05"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_11_PIN_01"/>
       <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="200"/>
-      <property id="module.middleware.motor_120_control.f4_max_drive_v" value="22.0"/>
+      <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.0"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
@@ -936,7 +936,7 @@
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
       <property id="module.middleware.motor_120_control.f4_pi_ctrl_kp" value="0.02"/>
-      <property id="module.middleware.motor_120_control.f4_pi_ctrl_ki" value="0.0005"/>
+      <property id="module.middleware.motor_120_control.f4_pi_ctrl_ki" value="0.005"/>
       <property id="module.middleware.motor_120_control.f4_pi_ctrl_ilimit" value="24.0"/>
       <property id="module.middleware.motor_120_control.u1_hall_interrupt_mask_value" value="15"/>
       <property id="module.middleware.motor_120_control.u2_mtr_pp" value="4"/>
@@ -967,7 +967,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_11_PIN_09"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="120"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="50"/>
       <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -983,7 +983,7 @@
       <property id="module.middleware.motor_120_driver.vw_ad_ch" value="ADC_CHANNEL_1"/>
       <property id="module.middleware.motor_120_driver.gtioca_stop_level" value="module.middleware.motor_120_driver.gtioca_stop_level.pin_level_low"/>
       <property id="module.middleware.motor_120_driver.gtiocb_stop_level" value="module.middleware.motor_120_driver.gtiocb_stop_level.pin_level_high"/>
-      <property id="module.middleware.motor_120_driver.max_duty" value="0.95"/>
+      <property id="module.middleware.motor_120_driver.max_duty" value="0.97"/>
       <property id="module.middleware.motor_120_driver.callback" value="NULL"/>
     </module>
     <module id="module.driver.adc_on_adc_b.450326507">
@@ -1835,7 +1835,7 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_13_PIN_13"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_13_PIN_14"/>
       <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="200"/>
-      <property id="module.middleware.motor_120_control.f4_max_drive_v" value="21.0"/>
+      <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.0"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
@@ -1868,7 +1868,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_10_PIN_11"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="240"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="50"/>
       <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -1884,7 +1884,7 @@
       <property id="module.middleware.motor_120_driver.vw_ad_ch" value="ADC_CHANNEL_25"/>
       <property id="module.middleware.motor_120_driver.gtioca_stop_level" value="module.middleware.motor_120_driver.gtioca_stop_level.pin_level_low"/>
       <property id="module.middleware.motor_120_driver.gtiocb_stop_level" value="module.middleware.motor_120_driver.gtiocb_stop_level.pin_level_high"/>
-      <property id="module.middleware.motor_120_driver.max_duty" value="0.9375"/>
+      <property id="module.middleware.motor_120_driver.max_duty" value="0.97"/>
       <property id="module.middleware.motor_120_driver.callback" value="NULL"/>
     </module>
     <module id="module.driver.adc_on_adc_b.2140025267">
@@ -2744,6 +2744,12 @@
       <property id="rtos.threadx.object.flags.name" value="New Event Flags"/>
       <property id="rtos.threadx.object.flags.symbol" value="g_event_flags_remotectrl"/>
     </object>
+    <object id="rtos.threadx.object.queue.1263745267">
+      <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
+      <property id="rtos.threadx.object.queue.symbol" value="log_queue"/>
+      <property id="rtos.threadx.object.queue.msg_size" value="1"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="80"/>
+    </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.middleware.rm_threadx_port.0"/>
@@ -2804,6 +2810,14 @@
       <property id="rtos.threadx.thread.priority" value="2"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.enabled"/>
       <property id="rtos.threadx.thread.timeslice" value="0"/>
+    </context>
+    <context id="rtos.threadx.thread.1128471820">
+      <property id="_symbol" value="log_thread"/>
+      <property id="rtos.threadx.thread.name" value="Log Thread"/>
+      <property id="rtos.threadx.thread.stack" value="1024"/>
+      <property id="rtos.threadx.thread.priority" value="3"/>
+      <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
+      <property id="rtos.threadx.thread.timeslice" value="1"/>
     </context>
     <config id="config.middleware.motor_120_degree">
       <property id="config.middleware.motor_120_degree.param_checking_enable" value="config.middleware.motor_120_degree.param_checking_enable.bsp"/>
