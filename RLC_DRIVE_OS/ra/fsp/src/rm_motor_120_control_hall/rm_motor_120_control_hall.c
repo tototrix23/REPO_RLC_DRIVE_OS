@@ -436,7 +436,7 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_SpeedSet (motor_120_control_ctrl_t * const p
  **********************************************************************************************************************/
 fsp_err_t RM_MOTOR_120_CONTROL_HALL_SpeedGet (motor_120_control_ctrl_t * const p_ctrl, float * const p_speed_rpm)
 {
-    motor_120_control_hall_instance_ctrl_t * p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t *) p_ctrl;
+    volatile motor_120_control_hall_instance_ctrl_t * p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t *) p_ctrl;
 
 #if MOTOR_120_CONTROL_HALL_CFG_PARAM_CHECKING_ENABLE
     FSP_ASSERT(NULL != p_instance_ctrl);

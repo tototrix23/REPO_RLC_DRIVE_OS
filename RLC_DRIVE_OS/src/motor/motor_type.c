@@ -78,6 +78,17 @@ void motor_itoh_brake_init(void)
     ptr->cfg_motorL.pulses_counting_reverse = 0;
     ptr->cfg_motorL.speed_reverse = 1;
 
+    //=====================================================================
+    // configuration de la taille des bandes mères et de la valeur moyenne
+    // d'une affiche (en nombre de points codeurs)
+    //=====================================================================
+    ptr->sizes.prime_band_upper_size = 1865;
+    ptr->sizes.prime_band_lower_size = 225;
+    ptr->sizes.poster_size = 1150;
+
+    //=====================================================================
+    // configuration des phases
+    //=====================================================================
     motor_phase_t *phase;
     C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
 	phase->condition_timeout_ms = 0;
@@ -218,7 +229,7 @@ void motor_itoh_brake_init(void)
     c_linked_list_init(&ptr->sequences.init.posterAccelerate);
     c_linked_list_init(&ptr->sequences.init.posterDecelerate);
     c_linked_list_init(&ptr->sequences.init.posterStop);
-
+    c_linked_list_init(&ptr->sequences.init.lowerBand);
 
 
     // STRETCH
@@ -259,8 +270,13 @@ void motor_itoh_brake_init(void)
     memset(phase,0x00,sizeof(motor_phase_t));
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
-    phase->params_motors[0].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[0].regulated.rpm = 1000.0f;
+    /*phase->params_motors[0].mode = MOTOR_REGULATED_MODE;
+    phase->params_motors[0].regulated.rpm = 1000.0f;*/
+    phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 200;
+    phase->params_motors[0].non_regulated.settings.percent = 45;
+
 
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
@@ -277,12 +293,39 @@ void motor_itoh_brake_init(void)
     phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
     phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 200;
-    phase->params_motors[0].non_regulated.settings.percent = -15;
+    phase->params_motors[0].non_regulated.settings.percent = 0;
 
-    phase->params_motors[1].mode = MOTOR_REGULATED_MODE;
-    phase->params_motors[1].regulated.rpm = -1000.0f;
+    /*phase->params_motors[1].mode = MOTOR_REGULATED_MODE;
+    phase->params_motors[1].regulated.rpm = -1000.0f;*/
+    phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 200;
+    phase->params_motors[1].non_regulated.settings.percent = -45;
+
     c_linked_list_append(&ptr->sequences.init.enrl,phase);
 
+    // Lower Band
+    C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
+    memset(phase,0x00,sizeof(motor_phase_t));
+    phase->condition_timeout_ms = 0;
+    phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
+    phase->params_motors[0].mode = MOTOR_BRAKE_MODE;
+    phase->params_motors[0].brake.mask = 0x02;
+    /*phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 200;
+    phase->params_motors[0].non_regulated.settings.percent = 0;*/
+
+
+    /*phase->params_motors[1].mode = MOTOR_REGULATED_MODE;
+    phase->params_motors[1].regulated.rpm = -800.0f;*/
+    phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 200;
+    phase->params_motors[1].non_regulated.settings.percent = -30;
+
+
+    c_linked_list_append(&ptr->sequences.init.lowerBand,phase);
 
     // POSTER ACCELERATE
     C_SALLOC(sizeof(motor_phase_t),(void**)&phase);

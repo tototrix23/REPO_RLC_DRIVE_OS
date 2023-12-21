@@ -1899,13 +1899,13 @@ FSP Configuration
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
-        General: Step of speed reference change: 0.2
+        General: Step of speed reference change: 1.0
         General: Start reference voltage (V): 6.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
         General: Minimum limit speed (rpm): 150
         General: PI control KP: 0.02
-        General: PI control KI: 0.0005
+        General: PI control KI: 0.005
         General: PI control limit: 24.0
         General: Hall interrupt mask value: 15
         Motor Parameter: Pole pairs: 4

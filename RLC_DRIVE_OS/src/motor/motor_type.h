@@ -103,6 +103,14 @@ typedef struct st_motor_profil_t
     motor_ext_cfg_t cfg_motorH; ///< Configuration du comportement du moteur haut
     motor_ext_cfg_t cfg_motorL; ///< Configuration du comportement du moteur bas
 
+
+    struct
+    {
+    uint16_t prime_band_upper_size;
+    uint16_t prime_band_lower_size;
+    uint16_t poster_size;
+    }sizes;
+
     struct
     {
     	c_linked_list_t error;
@@ -127,6 +135,8 @@ typedef struct st_motor_profil_t
             c_linked_list_t posterAccelerate;
             c_linked_list_t posterDecelerate;
             c_linked_list_t posterStop;
+            c_linked_list_t lowerBand;
+
         }init;
 
         struct
@@ -135,6 +145,12 @@ typedef struct st_motor_profil_t
         }automatic;
     }sequences;
 
+    struct
+    {
+        uint8_t count;
+        uint8_t index;
+        int32_t positions[5];
+    }panels;
 
 }motor_profil_t;
 

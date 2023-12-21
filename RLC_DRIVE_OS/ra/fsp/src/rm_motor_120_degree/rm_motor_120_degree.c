@@ -293,7 +293,7 @@ fsp_err_t RM_MOTOR_120_DEGREE_Reset (motor_ctrl_t * const p_ctrl)
 #endif
 
     /* Reset is valid only at "ERROR" status */
-    if (MOTOR_ERROR_NONE != p_instance_ctrl->u2_error_info)
+    if (MOTOR_ERROR_NONE != p_instance_ctrl->u2_error_info || p_instance_ctrl->st_statem.status == MOTOR_120_DEGREE_CTRL_STATUS_ERROR)
     {
         rm_motor_120_degree_statemachine_event(p_instance_ctrl, MOTOR_120_DEGREE_CTRL_EVENT_RESET);
 
@@ -1125,7 +1125,7 @@ static uint16_t rm_motor_120_degree_error_check (motor_120_degree_instance_ctrl_
 
 
     /* Low voltage error check */
-    u2_error_flags |= rm_motor_check_low_voltage_error(f_vdc, p_extended_cfg->f_lowvoltage_limit);
+    //u2_error_flags |= rm_motor_check_low_voltage_error(f_vdc, p_extended_cfg->f_lowvoltage_limit);
 
     if (p_motor_120_control_instance != NULL)
     {

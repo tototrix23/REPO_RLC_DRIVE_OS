@@ -1840,13 +1840,13 @@
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="0.2"/>
+      <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_start_refv" value="6.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
       <property id="module.middleware.motor_120_control.f4_pi_ctrl_kp" value="0.02"/>
-      <property id="module.middleware.motor_120_control.f4_pi_ctrl_ki" value="0.0005"/>
+      <property id="module.middleware.motor_120_control.f4_pi_ctrl_ki" value="0.005"/>
       <property id="module.middleware.motor_120_control.f4_pi_ctrl_ilimit" value="24.0"/>
       <property id="module.middleware.motor_120_control.u1_hall_interrupt_mask_value" value="15"/>
       <property id="module.middleware.motor_120_control.u2_mtr_pp" value="4"/>
