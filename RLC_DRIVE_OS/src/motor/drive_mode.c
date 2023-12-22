@@ -9,6 +9,7 @@
 #include "drive_mode.h"
 #include <motor/modes/init_mode.h>
 #include <motor/modes/manual_mode.h>
+#include <motor/modes/auto_mode.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_NONE
 #undef  LOG_MODULE
@@ -34,10 +35,26 @@ return_t set_drive_mode(drive_mode_t mode)
 
         if(current_mode == MOTOR_INIT_MODE)
         {
+            if(mode == MOTOR_MANUAL_MODE)
+            {
+                // Envoie de la demande au mode manuel
+                init_mode_stop();
+                // Attente de sortie du mode manuel
+                while(init_mode_is_running() == TRUE)
+                    tx_thread_sleep(1);
+            }
+            else if(mode == MOTOR_AUTO_MODE)
+            {
+
+            }
+        }
+
+        if(current_mode == MOTOR_AUTO_MODE)
+        {
             // Envoie de la demande au mode manuel
-            init_mode_stop();
+            auto_mode_stop();
             // Attente de sortie du mode manuel
-            while(init_mode_is_running() == TRUE)
+            while(auto_mode_is_running() == TRUE)
                 tx_thread_sleep(1);
         }
 

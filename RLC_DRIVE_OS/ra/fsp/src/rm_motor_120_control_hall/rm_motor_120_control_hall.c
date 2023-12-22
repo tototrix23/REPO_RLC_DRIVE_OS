@@ -1673,11 +1673,11 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
         {
             if (p_ctrl->extSettings->active == 1)
             {
-                p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
+                p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
                 if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
                 {
                     /* Set PI control parameter for start */
-                    p_ctrl->f4_pi_ctrl_refi  = p_ctrl->f4_v_ref;
+                    p_ctrl->f4_pi_ctrl_refi  = p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
                     p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
                 }
             }

@@ -52,14 +52,14 @@ static bool_t check_stop_request(void)
     sequence_result_t sequence_result;
     if(mode_stop_order == TRUE)
     {
-        LOG_D(LOG_STD,"manual mode stop order begin ");
+        //LOG_D(LOG_STD,"manual mode stop order begin ");
         // Arrêt des moteurs
         motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
         // RAZ des flags du mode manuel
         mode_stop_order = FALSE;
         mode_running = FALSE;
         //
-        LOG_D(LOG_STD,"manual mode stop order end");
+        //LOG_D(LOG_STD,"manual mode stop order end");
         // Fin
         return TRUE;
     }
@@ -70,7 +70,7 @@ static bool_t check_stop_request(void)
 void init_mode_stop(void)
 {
     mode_stop_order = TRUE;
-    LOG_D(LOG_STD,"order to stop init mode %d", line);
+    //LOG_D(LOG_STD,"order to stop init mode %d", line);
 }
 
 bool_t init_mode_is_running(void)
@@ -91,7 +91,7 @@ return_t init_mode_process(void) {
     mode_running = TRUE;
     mode_stop_order = FALSE;
     motors_instance.error = MOTORS_ERROR_NONE;
-    LOG_I(LOG_STD,"INIT -> début");
+
 
     //----------------------------------------------------------------------------------------------
     // Arrêt des moteurs
@@ -109,7 +109,7 @@ return_t init_mode_process(void) {
         }
         tx_thread_sleep(1);
     }
-    LOG_I(LOG_STD,"Fin arrêt");
+
 
     //----------------------------------------------------------------------------------------------
     // Mise en tension des affiches
@@ -129,21 +129,20 @@ return_t init_mode_process(void) {
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
     ret = init_enrh();
     if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    LOG_W(LOG_STD,"%d",pulsesH);
-    delay_ms(1000);
+    /*motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
+    LOG_W(LOG_STD,"%d",pulsesH);*/
+    delay_ms(300);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
     LOG_W(LOG_STD,"PulsesH: %d PulsesL: %d",pulsesH,pulsesL);
     pulses[0] = abs(pulsesH);
-    delay_ms(500);
+
     //----------------------------------------------------------------------------------------------
     // Tirage bande mère basse
     //----------------------------------------------------------------------------------------------
     ret = init_enrl_prime_band_low();
     if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
-    delay_ms(3000);
-//pulses
+    delay_ms(100);
 
 
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
@@ -169,16 +168,16 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
 
 */
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    LOG_I(LOG_STD,"INIT -> fin");
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    LOG_I(LOG_STD,"pulsesH %d",pulsesH);
-    while(1)
+
+    set_drive_mode(MOTOR_AUTO_MODE);
+    tx_thread_sleep(1);
+    /*while(1)
     {
         if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
         tx_thread_sleep(1);
-    }
+    }*/
 
 
     mode_running = FALSE;
@@ -270,12 +269,12 @@ static return_t init_strectch(void)
                     motors_instance.motorH->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW ||
                     motors_instance.motorL->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
             {
-                if(motors_instance.motorH->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
+                /*if(motors_instance.motorH->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
                    LOG_D(LOG_STD,"motorH reverse detected");
                 if(motors_instance.motorL->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
                    LOG_D(LOG_STD,"motorL reverse detected");
 
-                LOG_D(LOG_STD,"motorH: 0x%X ,motorL: 0x%X",motors_instance.motorH->error,motors_instance.motorL->error);
+                LOG_D(LOG_STD,"motorH: 0x%X ,motorL: 0x%X",motors_instance.motorH->error,motors_instance.motorL->error);*/
                 end = TRUE;
             }
             else if(expected_errorH_ok==-1 || expected_errorL_ok==-1)
@@ -307,6 +306,7 @@ static return_t init_enrh(void)
 
     int32_t pulsesH1;
     int32_t pulsesH2;
+    int32_t pulsesL;
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
     motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.init.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
@@ -353,9 +353,11 @@ static return_t init_enrh(void)
         {
             h_time_update(&ts2);
             motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
+            motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
             if(abs(pulsesH2 - pulsesH1) <= 1)
             {
                 end=TRUE;
+                LOG_D(LOG_STD,"pulses stop detected");
             }
             pulsesH1 = pulsesH2;
         }
@@ -419,7 +421,7 @@ static return_t init_enrl(void)
                 else
                 {
                     LOG_E(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
-                    motor_drive_sequence(&ptr->sequences.init.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);//scroll_stop();
+                    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                     MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_UNEXPECTED_ERROR);
                 }
 
@@ -444,13 +446,13 @@ static return_t init_enrl(void)
 
     }
 
-    motor_drive_sequence(&ptr->sequences.init.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);//scroll_stop();
+    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
-    int32_t pulsesH;
+    /*int32_t pulsesH;
     int32_t pulsesL;
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-    LOG_D(LOG_STD,"pulsesH: %d   pulsesL: %d",pulsesH,pulsesL);
+    LOG_D(LOG_STD,"pulsesH: %d   pulsesL: %d",pulsesH,pulsesL);*/
 
 
 
@@ -596,8 +598,9 @@ static void scroll_stop(void)
 {
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    //motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 }
 
 static void positions_process(void)

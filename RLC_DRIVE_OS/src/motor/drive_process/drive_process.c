@@ -31,6 +31,10 @@ return_t drive_process(void)
     case MOTOR_INIT_MODE:
         init_mode_process();
         break;
+
+    case MOTOR_AUTO_MODE:
+        auto_mode_process();
+        break;
     default:
     	break;
     }

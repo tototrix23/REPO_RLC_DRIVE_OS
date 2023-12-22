@@ -136,12 +136,13 @@ typedef struct st_motor_profil_t
             c_linked_list_t posterDecelerate;
             c_linked_list_t posterStop;
             c_linked_list_t lowerBand;
-
         }init;
 
         struct
         {
-
+            c_linked_list_t poster_enrh;
+            c_linked_list_t poster_enrl;
+            c_linked_list_t poster_stop;
         }automatic;
     }sequences;
 

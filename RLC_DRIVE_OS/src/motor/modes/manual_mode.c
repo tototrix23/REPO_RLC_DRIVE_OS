@@ -18,7 +18,7 @@
 #include <remotectrl/remotectrl.h>
 
 #undef  LOG_LEVEL
-#define LOG_LEVEL     LOG_LVL_DEBUG
+#define LOG_LEVEL     LOG_LVL_NONE
 #undef  LOG_MODULE
 #define LOG_MODULE    "MANUAL"
 
