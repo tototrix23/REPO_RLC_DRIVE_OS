@@ -931,7 +931,7 @@
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_start_refv" value="6.0"/>
+      <property id="module.middleware.motor_120_control.f4_start_refv" value="5.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
@@ -1841,7 +1841,7 @@
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_start_refv" value="6.0"/>
+      <property id="module.middleware.motor_120_control.f4_start_refv" value="5.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>

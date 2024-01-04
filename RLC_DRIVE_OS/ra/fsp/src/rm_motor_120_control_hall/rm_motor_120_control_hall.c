@@ -407,7 +407,12 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_SpeedSet (motor_120_control_ctrl_t * const p
 #endif
 
 
+    // On s'assure que les settings relatifes au mode "non régulé" ne sont pas actifs.
     p_instance_ctrl->extSettings->active = 0;
+    // RAZ du compteur de temps pour le timeout du mode "régulé".
+    p_instance_ctrl->u4_cnt_timeout = 0;
+
+
 
     if (speed_rpm >= 0)
     {
@@ -1811,6 +1816,8 @@ static float rm_motor_120_control_hall_pi_ctrl (motor_120_control_hall_instance_
 static void rm_motor_120_control_hall_check_timeout_error (motor_120_control_hall_instance_ctrl_t * p_ctrl,
                                                            uint32_t                                 u4_timeout_limit)
 {
+    volatile uint8_t dummy=0x1;
+
     if (p_ctrl->extSettings->active == 1)
     {
         if (p_ctrl->extSettings->settings.timeout_hall_ms != 0x00)
@@ -1828,6 +1835,8 @@ static void rm_motor_120_control_hall_check_timeout_error (motor_120_control_hal
     {
         if (p_ctrl->u4_cnt_timeout > u4_timeout_limit)
         {
+
+            dummy++;
             p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET; /* hall timeout error */
         }
         else

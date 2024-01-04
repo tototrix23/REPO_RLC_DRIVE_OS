@@ -990,7 +990,7 @@ FSP Configuration
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
         General: Step of speed reference change: 1.0
-        General: Start reference voltage (V): 6.0
+        General: Start reference voltage (V): 5.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
         General: Minimum limit speed (rpm): 150
@@ -1900,7 +1900,7 @@ FSP Configuration
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
         General: Step of speed reference change: 1.0
-        General: Start reference voltage (V): 6.0
+        General: Start reference voltage (V): 5.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
         General: Minimum limit speed (rpm): 150

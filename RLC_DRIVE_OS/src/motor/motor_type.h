@@ -102,7 +102,7 @@ typedef struct st_motor_profil_t
     motor_ext_technology_t technology; ///< Technologie des moteurs
     motor_ext_cfg_t cfg_motorH; ///< Configuration du comportement du moteur haut
     motor_ext_cfg_t cfg_motorL; ///< Configuration du comportement du moteur bas
-
+    uint32_t poster_showtime;
 
     struct
     {

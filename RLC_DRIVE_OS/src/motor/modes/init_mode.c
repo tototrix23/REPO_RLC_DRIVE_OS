@@ -23,7 +23,6 @@
 
 static bool_t mode_running = FALSE;
 static bool_t mode_stop_order = FALSE;
-static uint16_t line = 0;
 static int32_t pulses[5];
 
 static void positions_process(void);
@@ -35,15 +34,6 @@ static return_t init_enrl_prime_band_low(void);
 static return_t init_poster(void);
 static void scroll_stop(void);
 
-
-
-
-
-
-static bool_t check_stop_request_nested(void)
-{
-    return mode_stop_order;
-}
 
 
 static bool_t check_stop_request(void)
@@ -682,6 +672,9 @@ static void positions_process(void)
     int32_t i=0;
     for(i=0;i<ptr->panels.count;i++)
         LOG_I(LOG_STD,"Pos%d = %d",i,ptr->panels.positions[i]);
+
+
+    ptr->panels.index = ptr->panels.count-1;
 
     volatile uint8_t end=1;
 }
