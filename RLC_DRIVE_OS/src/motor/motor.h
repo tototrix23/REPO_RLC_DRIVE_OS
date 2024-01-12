@@ -34,6 +34,7 @@ typedef struct st_motor_t
 
     uint16_t status;
     uint16_t error;
+    int16_t current_drive_mode;
 }st_motor_t;
 
 
@@ -57,5 +58,9 @@ void motor_init_fsp(void);
 return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res);
 return_t motor_wait_stop(st_motor_t *mot);
 void motor_log_speed(st_motor_t *mot);
+
+void motor_log_api(void);
+
+
 
 #endif /* APPLICATION_MOTOR_MOTOR_H_ */

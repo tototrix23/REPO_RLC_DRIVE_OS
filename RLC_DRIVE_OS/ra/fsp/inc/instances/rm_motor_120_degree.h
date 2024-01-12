@@ -97,6 +97,7 @@ typedef struct st_motor_120_degree_instance_ctrl
     motor_cfg_t const * p_cfg;                 ///< Pointer of configuration structure
 
     /* Extensions RAYLEC */
+    int8_t previous_mode;
     motor_ext_cfg_t extCfg;
     motor_ext_settings_api_t extSettings;
     uint8_t brake_mode;

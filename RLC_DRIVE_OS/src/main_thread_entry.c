@@ -57,6 +57,8 @@ void main_thread_entry(void)
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
     // Initialisation de la partie moteurs (partie API)
+    delay_ms(1000);
+    LOG_I(LOG_STD,"INIT FSP MOTOR");
     motor_init_fsp();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
@@ -77,6 +79,8 @@ void main_thread_entry(void)
         cnt++;
         tx_thread_sleep(100);
     }*/
+
+    set_drive_mode(MOTOR_INIT_MODE);
 
     /* TODO: add your own code here */
     while (1)

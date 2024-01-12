@@ -130,10 +130,11 @@ typedef struct st_motor_profil_t
         {
             c_linked_list_t stretch1;
             c_linked_list_t stretch2;
+            c_linked_list_t enrh_start;
             c_linked_list_t enrh;
+            c_linked_list_t enrl_start;
             c_linked_list_t enrl;
-            c_linked_list_t posterAccelerate;
-            c_linked_list_t posterDecelerate;
+            c_linked_list_t enrh_force;
             c_linked_list_t posterStop;
             c_linked_list_t lowerBand;
         }init;
@@ -141,6 +142,7 @@ typedef struct st_motor_profil_t
         struct
         {
             c_linked_list_t poster_enrh;
+            c_linked_list_t poster_enrh_slow;
             c_linked_list_t poster_enrl;
             c_linked_list_t poster_stop;
         }automatic;
@@ -151,6 +153,9 @@ typedef struct st_motor_profil_t
         uint8_t count;
         uint8_t index;
         int32_t positions[5];
+        int32_t positions_compH[5];
+        int32_t positions_compL[5];
+
     }panels;
 
 }motor_profil_t;

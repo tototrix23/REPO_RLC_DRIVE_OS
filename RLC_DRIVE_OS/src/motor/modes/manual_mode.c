@@ -18,7 +18,7 @@
 #include <remotectrl/remotectrl.h>
 
 #undef  LOG_LEVEL
-#define LOG_LEVEL     LOG_LVL_NONE
+#define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
 #define LOG_MODULE    "MANUAL"
 
@@ -100,8 +100,8 @@ void manual_mode_process(void) {
             motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
 
             LOG_D(LOG_STD,"pulsesH: %d  dirH: %d  pulsesL: %d dirL: %d",pulsesH,motors_instance.motorH->hall_vars->real_direction,pulsesL,motors_instance.motorL->hall_vars->real_direction);
-        }*/
-
+        }
+*/
 
         // Si une demande d'arrêt du modem manuel est présente
         if(check_stop_request() == TRUE) return;
@@ -116,17 +116,19 @@ void manual_mode_process(void) {
         // Traitement si l'état à changé.
         if(remote != remote_state)
         {
-            //LOG_D(LOG_STD,"Remote: %d - previous %d",remote,remote_state);
+            LOG_D(LOG_STD,"Remote: %d - previous %d",remote,remote_state);
             // Sauvegarde du nouvel état en cours de la télécommande
             remote_state = remote;
 
             // Arrêt propre (rampes par exemple) du mode en cours si besoin
             if(current_list == &ptr->sequences.manual.enrh)
             {
+                LOG_D(LOG_STD,"enrh_stop");
                 motor_drive_sequence(&ptr->sequences.manual.enrh_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             }
             else if(current_list == &ptr->sequences.manual.enrl)
             {
+                LOG_D(LOG_STD,"enrl_stop");
                 motor_drive_sequence(&ptr->sequences.manual.enrl_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             }
 
@@ -135,6 +137,7 @@ void manual_mode_process(void) {
                                    m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
                                    m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
             {
+                LOG_D(LOG_STD,"enrh");
                 motor_drive_sequence(&ptr->sequences.manual.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 current_list = &ptr->sequences.manual.enrh;
             }
@@ -142,6 +145,7 @@ void manual_mode_process(void) {
                     m12_enrl == REMOTECTRL_ACTIVE_LEVEL &&
                     m12_derh == !REMOTECTRL_ACTIVE_LEVEL)
             {
+                LOG_D(LOG_STD,"enrl");
                 motor_drive_sequence(&ptr->sequences.manual.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 current_list = &ptr->sequences.manual.enrl;
             }
@@ -149,18 +153,27 @@ void manual_mode_process(void) {
                     m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
                     m12_derh == REMOTECTRL_ACTIVE_LEVEL)
             {
+                LOG_D(LOG_STD,"derh");
                 motor_drive_sequence(&ptr->sequences.manual.derh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 current_list = &ptr->sequences.manual.derh;
             }
             else
             {
+                LOG_D(LOG_STD,"off_no_brake");
                 motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 current_list = &ptr->sequences.off_no_brake;
             }
         }
 
-        tx_thread_sleep(1);
 
+
+
+        /*if(current_list == &ptr->sequences.manual.enrh)
+        {
+            motor_drive_sequence(&ptr->sequences.manual.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+        }*/
+
+        tx_thread_sleep(1);
 
 
     }while(!end);

@@ -59,6 +59,10 @@
             <slot name="IRQ35" secure="true"/>
             <slot name="IRQ36" secure="true"/>
         </peripheral>
+        <peripheral name="PORT0" group="PORT">
+            <slot name="P000" secure="true"/>
+            <slot name="P001" secure="true"/>
+        </peripheral>
         <peripheral name="PORT2" group="PORT">
             <slot name="P212" secure="true"/>
         </peripheral>

@@ -83,7 +83,7 @@
     </config>
     <config id="config.bsp.ra">
       <property id="config.bsp.common.main" value="0x1000"/>
-      <property id="config.bsp.common.heap" value="0x1000"/>
+      <property id="config.bsp.common.heap" value="0x2000"/>
       <property id="config.bsp.common.vcc" value="3300"/>
       <property id="config.bsp.common.checking" value="config.bsp.common.checking.disabled"/>
       <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
@@ -924,14 +924,14 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_u" value="BSP_IO_PORT_12_PIN_04"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_12_PIN_05"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_11_PIN_01"/>
-      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="200"/>
+      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="500"/>
       <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.0"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_start_refv" value="5.0"/>
+      <property id="module.middleware.motor_120_control.f4_start_refv" value="6.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
@@ -967,7 +967,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_11_PIN_09"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="50"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="100"/>
       <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -1834,19 +1834,19 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_u" value="BSP_IO_PORT_13_PIN_12"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_13_PIN_13"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_13_PIN_14"/>
-      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="200"/>
+      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="500"/>
       <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.0"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_start_refv" value="5.0"/>
+      <property id="module.middleware.motor_120_control.f4_start_refv" value="6.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
-      <property id="module.middleware.motor_120_control.f4_pi_ctrl_kp" value="0.02"/>
-      <property id="module.middleware.motor_120_control.f4_pi_ctrl_ki" value="0.005"/>
+      <property id="module.middleware.motor_120_control.f4_pi_ctrl_kp" value="0.01"/>
+      <property id="module.middleware.motor_120_control.f4_pi_ctrl_ki" value="0.0005"/>
       <property id="module.middleware.motor_120_control.f4_pi_ctrl_ilimit" value="24.0"/>
       <property id="module.middleware.motor_120_control.u1_hall_interrupt_mask_value" value="15"/>
       <property id="module.middleware.motor_120_control.u2_mtr_pp" value="4"/>
@@ -1868,7 +1868,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_10_PIN_11"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="50"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="100"/>
       <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -2748,7 +2748,7 @@
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
       <property id="rtos.threadx.object.queue.symbol" value="log_queue"/>
       <property id="rtos.threadx.object.queue.msg_size" value="1"/>
-      <property id="rtos.threadx.object.queue.queue_size" value="80"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="320"/>
     </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
@@ -2958,6 +2958,10 @@
       <configSetting altId="jtag_fslash_swd.mode.swd.free" configurationId="jtag_fslash_swd.mode"/>
       <configSetting altId="jtag_fslash_swd.swclk.pa14" configurationId="jtag_fslash_swd.swclk"/>
       <configSetting altId="jtag_fslash_swd.swdio.pa13" configurationId="jtag_fslash_swd.swdio"/>
+      <configSetting altId="p000.input" configurationId="p000"/>
+      <configSetting altId="p000.gpio_mode.gpio_mode_in" configurationId="p000.gpio_mode"/>
+      <configSetting altId="p001.input" configurationId="p001"/>
+      <configSetting altId="p001.gpio_mode.gpio_mode_in" configurationId="p001.gpio_mode"/>
       <configSetting altId="p212.cgc.extal" configurationId="p212"/>
       <configSetting altId="p212.gpio_mode.gpio_mode_peripheral" configurationId="p212.gpio_mode"/>
       <configSetting altId="pa00.adc12.an000" configurationId="pa00"/>

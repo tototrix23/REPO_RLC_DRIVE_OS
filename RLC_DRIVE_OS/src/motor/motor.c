@@ -172,6 +172,9 @@ void motor_structures_init(void)
     motor1.motor_hall_instance = &g_mot_120_control_hall1;
     motor1.hall_vars = (motor_120_control_hall_instance_ctrl_t *)(&g_mot_120_control_hall1_ctrl);
 
+    motor0.current_drive_mode = -1;
+    motor1.current_drive_mode = -1;
+
     motors_instance.motorH = &motor0;
     motors_instance.motorL = &motor1;
     motors_instance.motors[0] =  motors_instance.motorH;
@@ -226,9 +229,59 @@ void motor_log_speed(st_motor_t *mot)
     motor_120_driver_instance_t    * p_instance_driver = (motor_120_driver_instance_t *) mot->motor_driver_instance;
     motor_120_driver_instance_ctrl_t *p_instance_driver_ctrl = (motor_120_driver_instance_ctrl_t *)p_instance_driver->p_ctrl;
     LOG_D(LOG_STD,"vadc:%f ",p_instance_driver_ctrl->f_vdc_ad);
+}
+
+
+void motor_log_api(void)
+{
+    uint8_t i=0;
+    for(i=0;i<2;i++)
+    {
+        //LOG_D(LOG_STD,"");
+        //LOG_D(LOG_STD,"Motor %d",i);
+        // Récupération du pointeur CONTROL
+        motor_instance_t *ctrl_inst  = (motor_instance_t*)motors_instance.motors[i]->motor_ctrl_instance;
+        motor_120_degree_instance_ctrl_t *p_ctrl_inst = (motor_120_degree_instance_ctrl_t*)ctrl_inst->p_ctrl;
+        // Récupération du pointeur HALL
+        motor_120_control_instance_t *hall_inst = (motor_120_control_instance_t*)motors_instance.motors[i]->motor_hall_instance;
+        motor_120_control_hall_instance_ctrl_t * p_hall_ctrl = (motor_120_control_hall_instance_ctrl_t *) (hall_inst->p_ctrl);
+        // Récupération du pointeur DRIVERS
+        motor_120_driver_instance_t    * driver_inst = (motor_120_driver_instance_t *) motors_instance.motors[i]->motor_driver_instance;
+        motor_120_driver_instance_ctrl_t *p_driver_ctrl = (motor_120_driver_instance_ctrl_t *)driver_inst->p_ctrl;
+
+        /*LOG_D(LOG_STD,"----------");
+        LOG_D(LOG_STD,"CTRL");
+        LOG_D(LOG_STD,"st_statem.status %d",p_ctrl_inst->st_statem.status);
+        LOG_D(LOG_STD,"st_statem.u2_error_status %d",p_ctrl_inst->st_statem.u2_error_status);
+        LOG_D(LOG_STD,"brake_mode %d",p_ctrl_inst->brake_mode);
+        LOG_D(LOG_STD,"u2_error_info %d",p_ctrl_inst->u2_error_info);*/
+
+        /*LOG_D(LOG_STD,"----------");
+        LOG_D(LOG_STD,"HALL");
+        LOG_D(LOG_STD,"active %d",p_hall_ctrl->active);
+        LOG_D(LOG_STD,"brake_mode %d",*p_hall_ctrl->brake_mode);
+        LOG_D(LOG_STD,"run_mode %d",p_hall_ctrl->run_mode);
+        LOG_D(LOG_STD,"pattern_error_flag %d",p_hall_ctrl->pattern_error_flag);*/
+
+        if(p_hall_ctrl->u4_cnt_timeout > 500)
+        {
+           LOG_E(LOG_STD,"mot %d u4_cnt_timeout %d",i,p_hall_ctrl->u4_cnt_timeout);
+        }
+        else if(p_hall_ctrl->u4_cnt_timeout > 250)
+        {
+            LOG_W(LOG_STD,"mot %d u4_cnt_timeout %d",i,p_hall_ctrl->u4_cnt_timeout);
+        }
+        else
+        {
+           LOG_D(LOG_STD,"mot %d u4_cnt_timeout %d",i,p_hall_ctrl->u4_cnt_timeout);
+        }
+    }
+
 
 
 }
+
+
 
 return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res)
 {
@@ -330,7 +383,6 @@ return_t motor_wait_stop(st_motor_t *mot)
     h_time_update(&ts);
 	motor_120_control_wait_stop_flag_t flg_wait_stop = MOTOR_120_CONTROL_WAIT_STOP_FLAG_SET;
 
-
     while (MOTOR_120_CONTROL_WAIT_STOP_FLAG_SET == flg_wait_stop)
 	{
     	mot->motor_ctrl_instance->p_api->waitStopFlagGet(mot->motor_ctrl_instance->p_ctrl, &flg_wait_stop);
@@ -338,11 +390,11 @@ return_t motor_wait_stop(st_motor_t *mot)
     	h_time_is_elapsed_ms(&ts, 1000, &res);
     	if(res == TRUE)
     	{
+    	    LOG_E(LOG_STD,"Wait stop flag timeout");
     		ERROR_SET_AND_RETURN(F_RET_MOTOR_STOP_FLAG_TIMEOUT);
     	}
     	h_time_update(&ts);
 	}
-
 	return ret;
 }
 

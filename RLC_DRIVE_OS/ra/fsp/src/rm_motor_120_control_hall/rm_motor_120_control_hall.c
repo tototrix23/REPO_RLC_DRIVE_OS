@@ -24,10 +24,15 @@
 #include <math.h>
 #include <stdint.h>
 #include "rm_motor_120_control_hall.h"
-
+#include <_core/c_math/c_math.h>
 /***********************************************************************************************************************
  * Macro definitions
  **********************************************************************************************************************/
+
+#undef  LOG_LEVEL
+#define LOG_LEVEL     LOG_LVL_DEBUG
+#undef  LOG_MODULE
+#define LOG_MODULE    "CONTROL_HALL"
 
 #define     MOTOR_120_CONTROL_HALL_OPEN               (0X3132484CL)
 
@@ -88,7 +93,11 @@ static float rm_motor_120_control_hall_limitf_h(float f4_value, float f4_max);
 static float rm_motor_120_control_hall_limitf_l(float f4_value, float f4_min);
 static float rm_motor_120_control_hall_limitf_abs(float f4_value, float f4_limit_value);
 
+
+
+
 /** Extension RAYLEC */
+static void rm_motor_120_control_reset_hall_timeout(motor_120_control_hall_instance_ctrl_t * p_ctrl);
 static void rm_motor_120_control_hall_pulses_counting(motor_120_control_hall_instance_ctrl_t * p_ctrl);
 /***********************************************************************************************************************
  * Private global variables
@@ -410,7 +419,7 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_SpeedSet (motor_120_control_ctrl_t * const p
     // On s'assure que les settings relatifes au mode "non régulé" ne sont pas actifs.
     p_instance_ctrl->extSettings->active = 0;
     // RAZ du compteur de temps pour le timeout du mode "régulé".
-    p_instance_ctrl->u4_cnt_timeout = 0;
+    rm_motor_120_control_reset_hall_timeout(p_instance_ctrl);
 
 
 
@@ -686,6 +695,7 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet(motor_120_control_ctrl_t 
 
 
     int16_t percent = p_instance_ctrl->extSettings->settings.percent;
+    rm_motor_120_control_reset_hall_timeout(p_instance_ctrl);
 
     if (percent >= 0)
     {
@@ -743,6 +753,9 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_
 
     if (p_extended_cfg->p_motor_120_driver_instance != NULL)
     {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->stop(
+                    p_extended_cfg->p_motor_120_driver_instance->p_ctrl);
+
         p_extended_cfg->p_motor_120_driver_instance->p_api->brake(
             p_extended_cfg->p_motor_120_driver_instance->p_ctrl);
     }
@@ -760,6 +773,23 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_
 /***********************************************************************************************************************
  * Private Functions
  **********************************************************************************************************************/
+
+static void rm_motor_120_control_reset_hall_timeout(motor_120_control_hall_instance_ctrl_t * p_ctrl)
+{
+
+
+    if(p_ctrl->u4_cnt_timeout>500)
+    {
+        volatile uint8_t stop=0;
+        stop=1;
+    }
+
+    do{
+        p_ctrl->u4_cnt_timeout = 0;
+        p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_CLEAR;
+    }while(p_ctrl->u4_cnt_timeout != 0);
+}
+
 static void rm_motor_120_control_hall_pulses_counting(motor_120_control_hall_instance_ctrl_t * p_ctrl)
 {
     motor_120_control_hall_extended_cfg_t *p_extended_cfg =
@@ -955,27 +985,34 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
             /* Init state */
             case MOTOR_120_CONTROL_RUN_MODE_INIT:
             {
-                p_driver_instance->p_api->flagCurrentOffsetGet(p_driver_instance->p_ctrl, &u1_temp_flag_offset);
 
-                /* When offset calibration finished & motor stopped, motor control starts. */
-                if ((MOTOR_120_DRIVER_FLAG_OFFSET_CALC_ALL_FINISH == u1_temp_flag_offset) &&
-                    (MOTOR_120_CONTROL_WAIT_STOP_FLAG_CLEAR == p_instance_ctrl->flag_wait_stop))
-                {
-                    p_instance_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_CONST;
-                    rm_motor_120_control_hall_voltage_ref_set(p_instance_ctrl); /* set voltage reference */
 
-                    p_driver_instance->p_api->phaseVoltageSet(p_driver_instance->p_ctrl,
-                                                              p_instance_ctrl->f4_v_ref,
-                                                              p_instance_ctrl->f4_v_ref,
-                                                              p_instance_ctrl->f4_v_ref);
+                /*if((p_instance_ctrl->extSettings->active == 1 && p_instance_ctrl->extSettings->settings.percent != 0) ||
+                   (p_instance_ctrl->extSettings->active == 0 && c_math_float_equality(p_instance_ctrl->f4_ref_speed_rad,0.0f) != TRUE))
+                {*/
 
-                    rm_motor_120_control_hall_pattern_set(p_instance_ctrl); /* Set voltage pattern */
+                    p_driver_instance->p_api->flagCurrentOffsetGet(p_driver_instance->p_ctrl, &u1_temp_flag_offset);
 
-                    if (p_instance_ctrl->extSettings->active == 1)
-                       p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_DRIVE;
-                    else
-                       p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_BOOT;
-                }
+                    /* When offset calibration finished & motor stopped, motor control starts. */
+                    if ((MOTOR_120_DRIVER_FLAG_OFFSET_CALC_ALL_FINISH == u1_temp_flag_offset) &&
+                        (MOTOR_120_CONTROL_WAIT_STOP_FLAG_CLEAR == p_instance_ctrl->flag_wait_stop))
+                    {
+                        p_instance_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_CONST;
+                        rm_motor_120_control_hall_voltage_ref_set(p_instance_ctrl); /* set voltage reference */
+
+                        p_driver_instance->p_api->phaseVoltageSet(p_driver_instance->p_ctrl,
+                                                                  p_instance_ctrl->f4_v_ref,
+                                                                  p_instance_ctrl->f4_v_ref,
+                                                                  p_instance_ctrl->f4_v_ref);
+
+                        rm_motor_120_control_hall_pattern_set(p_instance_ctrl); /* Set voltage pattern */
+
+                        if (p_instance_ctrl->extSettings->active == 1)
+                           p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_DRIVE;
+                        else
+                           p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_BOOT;
+                    }
+                //}
 
                 break;
             }
@@ -1027,15 +1064,25 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
         /* check run mode */
         if (MOTOR_120_CONTROL_RUN_MODE_INIT != p_instance_ctrl->run_mode)
         {
-            if (p_instance_ctrl->u4_cnt_timeout <= p_instance->p_cfg->u4_timeout_cnt)
+
+            if((p_instance_ctrl->extSettings->active == 1 && p_instance_ctrl->extSettings->settings.timeout_hall_ms != 0) ||
+               (p_instance_ctrl->extSettings->active == 0))
             {
-                p_instance_ctrl->u4_cnt_timeout++;
+                if (p_instance_ctrl->u4_cnt_timeout <= p_instance->p_cfg->u4_timeout_cnt)
+                {
+                    p_instance_ctrl->u4_cnt_timeout++;
+                }
             }
+            else p_instance_ctrl->u4_cnt_timeout = 0;
         }
         else
         {
             p_instance_ctrl->u4_cnt_timeout = 0;
         }
+    }
+    else
+    {
+        p_instance_ctrl->u4_cnt_timeout = 0;
     }
 
     if (NULL != p_instance->p_cfg->p_callback)
@@ -1294,7 +1341,7 @@ static void rm_motor_120_control_hall_pattern_set (motor_120_control_hall_instan
     motor_120_driver_instance_t const * p_driver_instance = p_extended_cfg->p_motor_120_driver_instance;
 
     uint32_t u4_temp_level;
-    uint8_t  u1_signal = 0x00;
+    volatile uint8_t  u1_signal = 0x00;
 
     rm_motor_120_control_hall_speed_calc(p_ctrl);
 
@@ -1324,6 +1371,7 @@ static void rm_motor_120_control_hall_pattern_set (motor_120_control_hall_instan
 
     if (MOTOR_120_DRIVER_PHASE_PATTERN_ERROR == p_ctrl->v_pattern)
     {
+        volatile uint8_t err = 1;
         p_ctrl->pattern_error_flag = MOTOR_120_CONTROL_PATTERN_ERROR_FLAG_SET;
     }
     else
@@ -1678,18 +1726,34 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
         {
             if (p_ctrl->extSettings->active == 1)
             {
-                p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
-                if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                if(p_ctrl->extSettings->settings.slope == 1)
                 {
-                    /* Set PI control parameter for start */
-                    p_ctrl->f4_pi_ctrl_refi  = p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
-                    p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                    p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;//p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
+                    if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                    {
+                        /* Set PI control parameter for start */
+                        p_ctrl->f4_pi_ctrl_refi  = p_extended_cfg->f4_start_refv;//p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
+                        p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                    }
                 }
+                else
+                {
+                    p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;//p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
+                    if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                    {
+                        /* Set PI control parameter for start */
+                        p_ctrl->f4_pi_ctrl_refi  = p_ctrl->extSettings->voltage;//p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
+                        p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                    }
+                }
+
             }
             else
             {
                 /* Set start reference voltage(constant) */
                 p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
+
+
                 if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
                 {
                     /* Set PI control parameter for start */
@@ -1704,18 +1768,25 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
         {
             if (p_ctrl->extSettings->active == 1)
             {
-                float delta = 0.0f;
-                if (p_ctrl->f4_v_ref > p_ctrl->extSettings->voltage)
+                if(p_ctrl->extSettings->settings.slope == 1)
                 {
-                    delta = ((p_ctrl->f4_v_ref - p_ctrl->extSettings->voltage)>= 0.05f)?0.05f:0.01f;
+                    float delta = 0.0f;
+                    if (p_ctrl->f4_v_ref > p_ctrl->extSettings->voltage)
+                    {
+                        delta = ((p_ctrl->f4_v_ref - p_ctrl->extSettings->voltage)>= 0.01f)?0.01f:0.01f;
 
-                    p_ctrl->f4_v_ref = p_ctrl->f4_v_ref - (float)delta;
+                        p_ctrl->f4_v_ref = p_ctrl->f4_v_ref - (float)delta;
+                    }
+                    else if (p_ctrl->f4_v_ref < p_ctrl->extSettings->voltage)
+                    {
+                        delta = ((p_ctrl->extSettings->voltage - p_ctrl->f4_v_ref)>= 0.01f)?0.01f:0.01f;
+
+                        p_ctrl->f4_v_ref = p_ctrl->f4_v_ref + (float) delta;
+                    }
                 }
-                else if (p_ctrl->f4_v_ref < p_ctrl->extSettings->voltage)
+                else
                 {
-                    delta = ((p_ctrl->extSettings->voltage - p_ctrl->f4_v_ref)>= 0.05f)?0.05f:0.01f;
-
-                    p_ctrl->f4_v_ref = p_ctrl->f4_v_ref + (float) delta;
+                    p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;
                 }
 
 
@@ -1816,8 +1887,6 @@ static float rm_motor_120_control_hall_pi_ctrl (motor_120_control_hall_instance_
 static void rm_motor_120_control_hall_check_timeout_error (motor_120_control_hall_instance_ctrl_t * p_ctrl,
                                                            uint32_t                                 u4_timeout_limit)
 {
-    volatile uint8_t dummy=0x1;
-
     if (p_ctrl->extSettings->active == 1)
     {
         if (p_ctrl->extSettings->settings.timeout_hall_ms != 0x00)
@@ -1835,8 +1904,6 @@ static void rm_motor_120_control_hall_check_timeout_error (motor_120_control_hal
     {
         if (p_ctrl->u4_cnt_timeout > u4_timeout_limit)
         {
-
-            dummy++;
             p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET; /* hall timeout error */
         }
         else

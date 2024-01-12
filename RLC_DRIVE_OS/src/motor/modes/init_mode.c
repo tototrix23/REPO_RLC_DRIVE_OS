@@ -13,6 +13,7 @@
 #include <motor/drive_process/drive_process.h>
 #include <motor/drive_process/drive_sequence.h>
 #include <motor/motors_errors.h>
+#include <adc/adc.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -31,7 +32,6 @@ static return_t init_strectch(void);
 static return_t init_enrh(void);
 static return_t init_enrl(void);
 static return_t init_enrl_prime_band_low(void);
-static return_t init_poster(void);
 static void scroll_stop(void);
 
 
@@ -69,7 +69,7 @@ bool_t init_mode_is_running(void)
 }
 
 return_t init_mode_process(void) {
-    return_t ret = X_RET_OK;
+    volatile return_t ret = X_RET_OK;
 	motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
     c_timespan_t ts;
@@ -160,7 +160,9 @@ return_t init_mode_process(void) {
 */
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-
+    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    delay_ms(1000);
+    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
     set_drive_mode(MOTOR_AUTO_MODE);
     tx_thread_sleep(1);
     /*while(1)
@@ -265,6 +267,8 @@ static return_t init_strectch(void)
                    LOG_D(LOG_STD,"motorL reverse detected");
 
                 LOG_D(LOG_STD,"motorH: 0x%X ,motorL: 0x%X",motors_instance.motorH->error,motors_instance.motorL->error);*/
+
+                LOG_D(LOG_STD,"current %d mA",adc_inst.instantaneous.iin);
                 end = TRUE;
             }
             else if(expected_errorH_ok==-1 || expected_errorL_ok==-1)
@@ -289,22 +293,33 @@ static return_t init_enrh(void)
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
     c_timespan_t ts;
+    c_timespan_t ts_start;
     bool_t end = FALSE;
     bool_t ts_elasped;
     c_timespan_t ts2;
+    bool_t start_finished = FALSE;
     h_time_update(&ts);
-
+    h_time_update(&ts_start);
     int32_t pulsesH1;
     int32_t pulsesH2;
     int32_t pulsesL;
+    LOG_D(LOG_STD,"ENRH START");
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
-    motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    motor_drive_sequence(&ptr->sequences.init.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    delay_ms(1500);
+    //motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    //motor_drive_sequence(&ptr->sequences.init.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.init.enrh_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    delay_ms(500);
     h_time_update(&ts2);
     while(!end)
     {
         if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
+
+        h_time_is_elapsed_ms(&ts_start, 1000, &ts_elasped);
+        if(ts_elasped == TRUE && start_finished == FALSE)
+        {
+            start_finished = TRUE;
+            motor_drive_sequence(&ptr->sequences.init.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+        }
 
         h_time_is_elapsed_ms(&ts, 60000, &ts_elasped);
         if(ts_elasped == TRUE)
@@ -315,7 +330,6 @@ static return_t init_enrh(void)
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_L,F_RET_MOTOR_INIT_TIMEOUT_BASE_L);
         }
 
-
         if((motors_instance.motorH->error != 0x00) )
         {
             if(motors_instance.motorH->error != 0x00)
@@ -324,39 +338,59 @@ static return_t init_enrh(void)
                    (motors_instance.motorH->error == MOTOR_ERROR_BEMF_TIMEOUT))
 
                 {
+                    scroll_stop();
                     LOG_D(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
                     end = TRUE;
                 }
                 else
                 {
-                    LOG_E(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
                     scroll_stop();
+                    LOG_E(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
                     MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_UNEXPECTED_ERROR);
                 }
-
             }
         }
 
         bool_t ts2_elasped=FALSE;
-        h_time_is_elapsed_ms(&ts2, 200, &ts2_elasped);
+        h_time_is_elapsed_ms(&ts2, 100, &ts2_elasped);
         if(ts2_elasped == TRUE)
         {
             h_time_update(&ts2);
             motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
             motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-            if(abs(pulsesH2 - pulsesH1) <= 1)
+            if(abs(pulsesH2 - pulsesH1) <= 5)
             {
+                scroll_stop();
+                LOG_D(LOG_STD,"enrH stop condition");
                 end=TRUE;
-                LOG_D(LOG_STD,"pulses stop detected");
             }
             pulsesH1 = pulsesH2;
+        }
+
+
+        uint16_t value_iin = adc_inst.instantaneous.iin;
+        if(value_iin > 3000)
+        {
+            scroll_stop();
+            end=TRUE;
+            LOG_D(LOG_STD,"current %d mA",value_iin);
         }
 
         tx_thread_sleep(1);
     }
 
-
+   /* LOG_D(LOG_STD,"Force start");
+    h_time_update(&ts);
+    motor_drive_sequence(&ptr->sequences.init.enrh_force,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    ts_elasped = FALSE;
+    while(!ts_elasped)
+    {
+        h_time_is_elapsed_ms(&ts, 2000, &ts_elasped);
+        tx_thread_sleep(1);
+    }
+    LOG_D(LOG_STD,"Force stop");*/
     scroll_stop();
+    delay_ms(1000);
     return ret;
 }
 
@@ -365,12 +399,14 @@ static return_t init_enrl(void)
     return_t ret = X_RET_OK;
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
+    c_timespan_t ts_start;
     c_timespan_t ts;
     c_timespan_t ts2;
+    bool_t start_finished = FALSE;
     bool_t end = FALSE;
     bool_t ts_elasped;
     h_time_update(&ts);
-
+    h_time_update(&ts_start);
     //motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
     //motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
 
@@ -378,13 +414,24 @@ static return_t init_enrl(void)
     int32_t pulsesH1;
     int32_t pulsesH2;
 
+
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
-    motor_drive_sequence(&ptr->sequences.init.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    delay_ms(1500);
+    //LOG_D(LOG_STD,"pStart %d",pulsesH1);
+    motor_drive_sequence(&ptr->sequences.init.enrl_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    delay_ms(500);
     h_time_update(&ts2);
     while(!end)
     {
         if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
+
+
+
+        h_time_is_elapsed_ms(&ts_start, 1000, &ts_elasped);
+        if(ts_elasped == TRUE && start_finished == FALSE)
+        {
+            start_finished = TRUE;
+            motor_drive_sequence(&ptr->sequences.init.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+        }
 
         h_time_is_elapsed_ms(&ts, 60000, &ts_elasped);
         if(ts_elasped == TRUE)
@@ -405,47 +452,60 @@ static return_t init_enrl(void)
                    (motors_instance.motorH->error == MOTOR_ERROR_BEMF_TIMEOUT))
 
                 {
+                    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                     LOG_D(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
                     end = TRUE;
                 }
                 else
                 {
-                    LOG_E(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
                     motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                    LOG_E(LOG_STD,"!!! motorH: 0x%X",motors_instance.motorH->error);
                     MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_UNEXPECTED_ERROR);
                 }
 
             }
         }
 
-        bool_t ts2_elasped=FALSE;
-        h_time_is_elapsed_ms(&ts2, 200, &ts2_elasped);
+        bool_t ts2_elasped;
+        if(start_finished == FALSE)
+            h_time_is_elapsed_ms(&ts2, 300, &ts2_elasped);
+        else
+            h_time_is_elapsed_ms(&ts2, 100, &ts2_elasped);
+
         if(ts2_elasped == TRUE)
         {
             h_time_update(&ts2);
             motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
-            if(abs(pulsesH2 - pulsesH1) <= 1)
+            //LOG_D(LOG_STD,"p %d",pulsesH2);
+            if(abs(pulsesH2 - pulsesH1) <= 5)
             {
+                motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                LOG_D(LOG_STD,"enrL stop condition");
                 end=TRUE;
             }
             pulsesH1 = pulsesH2;
+
+
+
         }
 
+        /*h_time_is_elapsed_ms(&ts, 20, &ts_elasped);
+        if(ts_elasped == TRUE)
+        {
+            h_time_update(&ts);
+            LOG_D(LOG_STD,"current %d mA  - %d mA",adc_inst.instantaneous.iin,adc_inst.average.iin);
+        }*/
+
+        uint16_t value_iin = adc_inst.instantaneous.iin;
+        if(value_iin > 3000)
+        {
+            motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            end=TRUE;
+            LOG_D(LOG_STD,"current %d mA",value_iin);
+        }
         tx_thread_sleep(1);
-
-
     }
-
     motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-
-    /*int32_t pulsesH;
-    int32_t pulsesL;
-    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-    LOG_D(LOG_STD,"pulsesH: %d   pulsesL: %d",pulsesH,pulsesL);*/
-
-
-
     return ret;
 }
 
@@ -501,104 +561,24 @@ static return_t init_enrl_prime_band_low(void)
 
 
 
-static return_t init_poster(void)
-{
-    return_t ret = X_RET_OK;
-    motor_profil_t *ptr = &motors_instance.profil;
-    sequence_result_t sequence_result;
-    c_timespan_t ts;
-    c_timespan_t ts2;
-    c_timespan_t ts3;
-    bool_t end = FALSE;
-    bool_t ts_elasped;
-    h_time_update(&ts);
-
-    int32_t pulsesH;
-    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
-    motor_drive_sequence(&ptr->sequences.init.posterAccelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    h_time_get_elapsed(&ts, &ts2);
-    volatile motor_120_control_instance_t *mot_inst = (motor_120_control_instance_t*)motors_instance.motorH->motor_hall_instance;
-        volatile motor_120_control_hall_instance_ctrl_t * p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t *) (mot_inst->p_ctrl);
-    LOG_D(LOG_STD,"elaspedH: %d  %d",ts2.ms,(int32_t)p_instance_ctrl->f4_v_ref);
-
-    float speed = p_instance_ctrl->f4_v_ref;
-    LOG_D(LOG_STD,"Speed %d mV",(int32_t)(speed*1000));
-    //motors_instance.motorH->motor_ctrl_instance->
-    while(!end)
-    {
-        if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
-        h_time_is_elapsed_ms(&ts, 5000, &ts_elasped);
-        if(ts_elasped == TRUE)
-        {
-            h_time_update(&ts);
-            motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-            MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_CHANGING_POSTER,F_RET_MOTOR_INIT_TIMEOUT_POSTER);
-        }
-        motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-        if(pulsesH >= 1850)
-        {
-            LOG_D(LOG_STD,"%d",pulsesH);
-
-            motor_log_speed(motors_instance.motorH);
-            h_time_get_elapsed(&ts, &ts3);
-            LOG_D(LOG_STD,"elaspedH: %d ",ts3.ms);
-            end = TRUE;
-
-        }
-
-        tx_thread_sleep(1);
-    }
-    h_time_update(&ts);
-    end=FALSE;
-    /*motor_drive_sequence(&ptr->sequences.init.posterDecelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    h_time_get_elapsed(&ts, &ts2);
-    LOG_D(LOG_STD,"elaspedL: %d  %d",ts2.ms,(int32_t)p_instance_ctrl->f4_v_ref);*/
-
-
-
-
-    /*while(!end)
-    {
-        if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
-        h_time_is_elapsed_ms(&ts, 5000, &ts_elasped);
-        if(ts_elasped == TRUE)
-        {
-            h_time_update(&ts);
-            motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-            MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_CHANGING_POSTER,F_RET_MOTOR_INIT_TIMEOUT_POSTER);
-        }
-        motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-        if(pulsesH >= 1865)
-        {
-            LOG_D(LOG_STD,"Top2");
-            end = TRUE;
-        }
-
-        tx_thread_sleep(1);
-    }*/
-    h_time_update(&ts);
-    scroll_stop();
-
-    return ret;
-}
-
 
 static void scroll_stop(void)
 {
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    //motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 }
 
 static void positions_process(void)
 {
+
     motor_profil_t *ptr = &motors_instance.profil;
+    memset(ptr->panels.positions_compH,0x00,sizeof(ptr->panels.positions_compH));
+    memset(ptr->panels.positions_compL,0x00,sizeof(ptr->panels.positions_compL));
+
     int32_t total_pulses = pulses[0];
-    LOG_D(LOG_STD,"Total pulses: %d",pulses[0]);
-    LOG_D(LOG_STD,"pulses1: %d",pulses[1]);
 
     if(total_pulses > ptr->sizes.prime_band_upper_size)
         total_pulses = total_pulses-ptr->sizes.prime_band_upper_size;

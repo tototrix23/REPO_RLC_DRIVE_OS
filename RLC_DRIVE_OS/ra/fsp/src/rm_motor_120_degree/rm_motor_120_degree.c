@@ -208,9 +208,13 @@ fsp_err_t RM_MOTOR_120_DEGREE_Open (motor_ctrl_t * const p_ctrl, motor_cfg_t con
     //---------------------------------------------
     p_extended_cfg->p_motor_120_control_instance->p_api->pulsesSet(p_extended_cfg->p_motor_120_control_instance->p_ctrl,&p_instance_ctrl->extPulses);
     RM_MOTOR_120_DEGREE_ExtPulsesSet(p_instance_ctrl, 0);
+    p_instance_ctrl->previous_mode = -1;
 
 
     p_instance_ctrl->brake_mode = 0;
+    p_instance_ctrl->brake_mask = 0;
+    p_instance_ctrl->extSettings.active = 0;
+
     if (p_extended_cfg != NULL)
     {
         p_extended_cfg->p_motor_120_control_instance->p_api->brakeSet(p_extended_cfg->p_motor_120_control_instance->p_ctrl,
@@ -356,6 +360,8 @@ fsp_err_t RM_MOTOR_120_DEGREE_Stop (motor_ctrl_t * const p_ctrl)
 #endif
 
     p_instance_ctrl->brake_mode = 0;
+    p_instance_ctrl->brake_mask = 0;
+    p_instance_ctrl->extSettings.active = 0;
     rm_motor_120_degree_statemachine_event(p_instance_ctrl, MOTOR_120_DEGREE_CTRL_EVENT_STOP);
 
     return err;

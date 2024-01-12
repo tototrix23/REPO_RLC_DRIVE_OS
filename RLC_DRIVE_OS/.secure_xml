@@ -91,6 +91,8 @@
       <configSetting altId="gpt_poegd.gtetrgd.pc13" configurationId="gpt_poegd.gtetrgd"/>
       <configSetting altId="jtag_fslash_swd.swclk.pa14" configurationId="jtag_fslash_swd.swclk"/>
       <configSetting altId="jtag_fslash_swd.swdio.pa13" configurationId="jtag_fslash_swd.swdio"/>
+      <configSetting altId="p000.input" configurationId="p000"/>
+      <configSetting altId="p001.input" configurationId="p001"/>
       <configSetting altId="pa15.output.low" configurationId="pa15"/>
       <configSetting altId="pb01.input" configurationId="pb01"/>
       <configSetting altId="pc04.input" configurationId="pc04"/>

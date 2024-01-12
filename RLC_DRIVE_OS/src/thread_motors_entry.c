@@ -57,10 +57,10 @@ void thread_motors_entry(void)
     // Activation de l'alimentation du moteur
     R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
     // Temporisation pour la stabilisation
-    delay_ms(10);
+    delay_ms(1000);
 
     ret = h_drv8316_read_all_registers(&drv_mot1);
-    drv_mot1.registers.ctrl2.bits.SLEW = 3;
+    drv_mot1.registers.ctrl2.bits.SLEW = 1;//3;
     drv_mot1.registers.ctrl2.bits.PWM_MODE = 0;
     drv_mot1.registers.ctrl4.bits.OCP_MODE = 0;
     drv_mot1.registers.ctrl4.bits.OCP_DEG = 0;
@@ -68,7 +68,7 @@ void thread_motors_entry(void)
     drv_mot1.registers.ctrl5.bits.CSA_GAIN = 0;
     drv_mot1.registers.ctrl5.bits.EN_AAR = 0;
     drv_mot1.registers.ctrl5.bits.EN_ASR = 0;
-    drv_mot1.registers.ctrl10.bits.DLY_TARGET = 0x5;
+    drv_mot1.registers.ctrl10.bits.DLY_TARGET = 0xB;//0x5;
     drv_mot1.registers.ctrl10.bits.DLYCMP_EN = 1;
     ret = h_drv8316_write_all_registers(&drv_mot1);
     ret = h_drv8316_read_all_registers(&drv_mot1);
@@ -91,6 +91,12 @@ void thread_motors_entry(void)
 
     /*sequence_result_t sequence_result;
     motor_drive_sequence(&motors_instance.profil.sequences.off_brake,0,&sequence_result);
+    while(1)
+    {
+        tx_thread_sleep (1);
+    }*/
+    /*sequence_result_t sequence_result;
+    motor_drive_sequence(&motors_instance.profil.sequences.off_brake,0,&sequence_result);
 
     while(1)
     {
@@ -103,6 +109,7 @@ void thread_motors_entry(void)
                 motors_instance.motorH->status,motors_instance.motorL->status);
 
     }*/
+
 
     // Demarrage de la boucle de traitement
     while (1)

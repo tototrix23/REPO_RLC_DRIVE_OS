@@ -236,6 +236,11 @@ void impl_log_write_d(uint8_t mode,char *module, char* s, char* file,const char*
             free(ptr);
         }
     }
+    else
+    {
+        volatile uint8_t crash = 1;
+        crash = 0;
+    }
 }
 
 
