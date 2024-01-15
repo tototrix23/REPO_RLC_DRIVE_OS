@@ -8,6 +8,7 @@
 #include "drive_sequence.h"
 #include <motor/modes/manual_mode.h>
 #include <motor/modes/init_mode.h>
+#include <motor/modes/auto_mode.h>
 #include <motor/motors_errors.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -22,23 +23,25 @@ return_t drive_process(void)
     motor_process(motors_instance.motorL);
     //motor_drive_sequence_process();
 
-    switch(motors_instance.mode)
+    if(drive_control.changing == FALSE)
     {
-    case MOTOR_MANUAL_MODE:
-    	manual_mode_process();
-    	break;
+        switch(motors_instance.mode)
+        {
+        case MOTOR_MANUAL_MODE:
+            manual_mode_process();
+            break;
 
-    case MOTOR_INIT_MODE:
-        init_mode_process();
-        break;
+        case MOTOR_INIT_MODE:
+            init_mode_process();
+            break;
 
-    case MOTOR_AUTO_MODE:
-        auto_mode_process();
-        break;
-    default:
-    	break;
+        case MOTOR_AUTO_MODE:
+            auto_mode_process();
+            break;
+        default:
+            break;
+        }
     }
-
     return X_RET_OK;
 }
 

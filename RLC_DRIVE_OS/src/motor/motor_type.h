@@ -103,6 +103,7 @@ typedef struct st_motor_profil_t
     motor_ext_cfg_t cfg_motorH; ///< Configuration du comportement du moteur haut
     motor_ext_cfg_t cfg_motorL; ///< Configuration du comportement du moteur bas
     uint32_t poster_showtime;
+    uint32_t current_stop;
 
     struct
     {
@@ -145,6 +146,7 @@ typedef struct st_motor_profil_t
             c_linked_list_t poster_enrh_slow;
             c_linked_list_t poster_enrl;
             c_linked_list_t poster_stop;
+            c_linked_list_t lower_band_enrh;
         }automatic;
     }sequences;
 
@@ -153,9 +155,9 @@ typedef struct st_motor_profil_t
         uint8_t count;
         uint8_t index;
         int32_t positions[5];
+        int32_t positions_default[5];
         int32_t positions_compH[5];
         int32_t positions_compL[5];
-
     }panels;
 
 }motor_profil_t;

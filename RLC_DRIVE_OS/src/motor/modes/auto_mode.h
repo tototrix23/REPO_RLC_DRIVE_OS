@@ -13,8 +13,7 @@
 #include <_core/c_common.h>
 
 
-void auto_mode_stop(void);
-bool_t auto_mode_is_running(void);
+
 return_t auto_mode_process(void);
 
 

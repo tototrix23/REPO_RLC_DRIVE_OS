@@ -32,6 +32,17 @@ typedef struct st_adc_t
         uint16_t vhall1;
         uint16_t vhall2;
     }instantaneous;
+
+    struct{
+        float iu_ad;
+        float iw_ad;
+    }motorH;
+
+    struct
+    {
+        float iu_ad;
+        float iw_ad;
+    }motorL;
 }st_adc_t;
 
 extern st_adc_t adc_inst;

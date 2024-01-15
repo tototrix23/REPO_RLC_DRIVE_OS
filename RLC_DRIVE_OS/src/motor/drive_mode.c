@@ -10,53 +10,98 @@
 #include <motor/modes/init_mode.h>
 #include <motor/modes/manual_mode.h>
 #include <motor/modes/auto_mode.h>
+#include <motor/drive_process/drive_sequence.h>
 #undef  LOG_LEVEL
-#define LOG_LEVEL     LOG_LVL_NONE
+#define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
 #define LOG_MODULE    "DRIVE"
+
+drive_control_t drive_control;
+
+bool_t drive_stop_request(void)
+{
+   if(drive_control.stop_order == TRUE)
+   {
+       motor_profil_t *ptr = &motors_instance.profil;
+       sequence_result_t sequence_result;
+       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+       drive_control.running = FALSE;
+       return TRUE;
+   }
+   else
+   {
+       return FALSE;
+   }
+}
 
 return_t set_drive_mode(drive_mode_t mode)
 {
     drive_mode_t current_mode = motors_instance.mode;
     if (mode != current_mode)
     {
+        drive_control.changing = TRUE;
+        bool_t change_order = FALSE;
+
+        switch(mode)
+        {
+            case MOTOR_MANUAL_MODE:
+                switch(current_mode)
+                {
+                    case MOTOR_MANUAL_MODE:
+                        break;
+
+                    case MOTOR_INIT_MODE:
+                        change_order = TRUE;
+                        break;
+
+                    case MOTOR_AUTO_MODE:
+                        change_order = TRUE;
+                        break;
+                }
+                break;
+
+            case MOTOR_INIT_MODE:
+                switch(current_mode)
+                {
+                    case MOTOR_MANUAL_MODE:
+                        change_order = TRUE;
+                        break;
+
+                    case MOTOR_INIT_MODE:
+                        break;
+
+                    case MOTOR_AUTO_MODE:
+                        break;
+                }
+                break;
+
+            case MOTOR_AUTO_MODE:
+                switch(current_mode)
+                {
+                    case MOTOR_MANUAL_MODE:
+                        break;
+
+                    case MOTOR_INIT_MODE:
+                        break;
+
+                    case MOTOR_AUTO_MODE:
+                        break;
+                }
+                break;
+        }
+
+
+        if(change_order == TRUE)
+        {
+            drive_control.stop_order = TRUE;
+            while(drive_control.running == TRUE)
+                tx_thread_sleep(10);
+            drive_control.stop_order = FALSE;
+        }
+
+
         motors_instance.mode = mode;
-        // Le mode manuel est une boucle infinie.
-        // Il faut envoyer un message au mode manuel pour lui demander de
-        // s'arreter
-        if(current_mode == MOTOR_MANUAL_MODE)
-        {
-            // Envoie de la demande au mode manuel
-            manual_mode_stop();
-            // Attente de sortie du mode manuel
-            while(manual_mode_is_running() == TRUE)
-                tx_thread_sleep(1);
-        }
-
-        if(current_mode == MOTOR_INIT_MODE)
-        {
-            if(mode == MOTOR_MANUAL_MODE)
-            {
-                // Envoie de la demande au mode manuel
-                init_mode_stop();
-                // Attente de sortie du mode manuel
-                while(init_mode_is_running() == TRUE)
-                    tx_thread_sleep(1);
-            }
-            else if(mode == MOTOR_AUTO_MODE)
-            {
-
-            }
-        }
-
-        if(current_mode == MOTOR_AUTO_MODE)
-        {
-            // Envoie de la demande au mode manuel
-            auto_mode_stop();
-            // Attente de sortie du mode manuel
-            while(auto_mode_is_running() == TRUE)
-                tx_thread_sleep(1);
-        }
+        drive_control.changing = FALSE;
 
         switch (mode)
         {

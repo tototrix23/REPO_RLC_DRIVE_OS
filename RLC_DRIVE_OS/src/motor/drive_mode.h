@@ -13,6 +13,27 @@
 #include <_core/c_common.h>
 
 
+#define CHECK_STOP_REQUEST()              {\
+                                          if(drive_stop_request())\
+                                             {\
+                                                 LOG_D(LOG_STD,"stop request");\
+                                                 return F_RET_MOTOR_DRIVE_CANCELLED;\
+                                             }\
+                                          }\
+
+#define CHECK_STOP_REQUEST_NESTED()       {\
+                                          if(drive_control.stop_order == TRUE) return F_RET_MOTOR_DRIVE_CANCELLED;\
+                                          }\
+
+#define CHECK_STOP_REQUEST_NESTED_CPLX()  {\
+                                          if(drive_control.stop_order == TRUE) \
+                                             {\
+                                              return_motor_cplx_update(&ret,F_RET_MOTOR_DRIVE_CANCELLED);\
+                                              return ret;\
+                                             }\
+                                          }\
+
+
 typedef enum  e_drive_mode
 {
     MOTOR_UNKNOWN_MODE = 0,
@@ -22,6 +43,16 @@ typedef enum  e_drive_mode
 } drive_mode_t;
 
 
+typedef struct st_drive_control_t
+{
+    bool_t stop_order;
+    bool_t running;
+    bool_t changing;
+}drive_control_t;
+
+extern drive_control_t drive_control;
+
+bool_t drive_stop_request(void);
 return_t set_drive_mode(drive_mode_t mode);
 
 

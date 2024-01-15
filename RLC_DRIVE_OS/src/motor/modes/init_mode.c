@@ -22,12 +22,9 @@
 #define LOG_MODULE    "INIT"
 
 
-static bool_t mode_running = FALSE;
-static bool_t mode_stop_order = FALSE;
 static int32_t pulses[5];
 
 static void positions_process(void);
-static bool_t check_stop_request(void);
 static return_t init_strectch(void);
 static return_t init_enrh(void);
 static return_t init_enrl(void);
@@ -36,39 +33,10 @@ static void scroll_stop(void);
 
 
 
-static bool_t check_stop_request(void)
-{
-    motor_profil_t *ptr = &motors_instance.profil;
-    sequence_result_t sequence_result;
-    if(mode_stop_order == TRUE)
-    {
-        //LOG_D(LOG_STD,"manual mode stop order begin ");
-        // Arrêt des moteurs
-        motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-        // RAZ des flags du mode manuel
-        mode_stop_order = FALSE;
-        mode_running = FALSE;
-        //
-        //LOG_D(LOG_STD,"manual mode stop order end");
-        // Fin
-        return TRUE;
-    }
-    else
-        return FALSE;
-}
 
-void init_mode_stop(void)
-{
-    mode_stop_order = TRUE;
-    //LOG_D(LOG_STD,"order to stop init mode %d", line);
-}
-
-bool_t init_mode_is_running(void)
-{
-   return mode_running;
-}
 
 return_t init_mode_process(void) {
+    drive_control.running = TRUE;
     volatile return_t ret = X_RET_OK;
 	motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
@@ -78,8 +46,7 @@ return_t init_mode_process(void) {
     int32_t pulsesH;
     int32_t pulsesL;
     h_time_update(&ts);
-    mode_running = TRUE;
-    mode_stop_order = FALSE;
+
     motors_instance.error = MOTORS_ERROR_NONE;
 
 
@@ -90,7 +57,7 @@ return_t init_mode_process(void) {
     end = FALSE;
     while(!end)
     {
-        if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+        CHECK_STOP_REQUEST();
         h_time_is_elapsed_ms(&ts, 1000, &ts_elasped);
         if(ts_elasped == TRUE)
         {
@@ -105,20 +72,33 @@ return_t init_mode_process(void) {
     // Mise en tension des affiches
     //----------------------------------------------------------------------------------------------
     ret = init_strectch();
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    CHECK_STOP_REQUEST();
     //----------------------------------------------------------------------------------------------
     // Recherche bande mère haute
     //----------------------------------------------------------------------------------------------
     ret = init_enrl();
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    CHECK_STOP_REQUEST();
+    delay_ms(500);
+    CHECK_STOP_REQUEST();
+    drive_control.running=FALSE;
+    ptr->panels.index = 0;
+    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
+    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
+    set_drive_mode(MOTOR_AUTO_MODE);
+    tx_thread_sleep(1);
+    return X_RET_OK;
+
+
     delay_ms(1000);
+    CHECK_STOP_REQUEST();
+
     //----------------------------------------------------------------------------------------------
     // Recherche bande mère basse
     //----------------------------------------------------------------------------------------------
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
     ret = init_enrh();
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    CHECK_STOP_REQUEST();
     /*motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
     LOG_W(LOG_STD,"%d",pulsesH);*/
     delay_ms(300);
@@ -131,7 +111,7 @@ return_t init_mode_process(void) {
     // Tirage bande mère basse
     //----------------------------------------------------------------------------------------------
     ret = init_enrl_prime_band_low();
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    CHECK_STOP_REQUEST();
     delay_ms(100);
 
 
@@ -143,7 +123,7 @@ return_t init_mode_process(void) {
     // Recherche bande mère haute
     //----------------------------------------------------------------------------------------------
     /*ret = init_enrl();
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    if(drive_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
 
 
     //----------------------------------------------------------------------------------------------
@@ -152,7 +132,7 @@ return_t init_mode_process(void) {
     LOG_I(LOG_STD,"init_poster");
     ret = init_poster();
     LOG_I(LOG_STD,"fin_init_poster");
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    if(drive_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
     //----------------------------------------------------------------------------------------------
     // Fin
     //----------------------------------------------------------------------------------------------
@@ -160,20 +140,13 @@ return_t init_mode_process(void) {
 */
     motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    CHECK_STOP_REQUEST();
     delay_ms(1000);
-    if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
+    CHECK_STOP_REQUEST();
+    drive_control.running=FALSE;
     set_drive_mode(MOTOR_AUTO_MODE);
     tx_thread_sleep(1);
-    /*while(1)
-    {
-        if(check_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
-        tx_thread_sleep(1);
-    }*/
 
-
-    mode_running = FALSE;
-    mode_stop_order = FALSE;
 
 
  return ret;
@@ -210,7 +183,7 @@ static return_t init_strectch(void)
     end = FALSE;
     while(!end)
     {
-        if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
+        CHECK_STOP_REQUEST_NESTED();
 
         // On verifie pour savoir si les moteurs tournent toujours
         // au bout de 20 secondes (anormal).
@@ -221,6 +194,7 @@ static return_t init_strectch(void)
             motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             // Macro d'enregistrement d'erreur et code de retour
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_DAMAGED_PANEL,F_RET_MOTOR_INIT_DAMAGED_PANELS);
+
         }
 
         // Verification des erreurs remontées par la librairie
@@ -312,7 +286,7 @@ static return_t init_enrh(void)
     h_time_update(&ts2);
     while(!end)
     {
-        if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
+        CHECK_STOP_REQUEST_NESTED();
 
         h_time_is_elapsed_ms(&ts_start, 1000, &ts_elasped);
         if(ts_elasped == TRUE && start_finished == FALSE)
@@ -369,7 +343,7 @@ static return_t init_enrh(void)
 
 
         uint16_t value_iin = adc_inst.instantaneous.iin;
-        if(value_iin > 3000)
+        if(value_iin > ptr->current_stop)
         {
             scroll_stop();
             end=TRUE;
@@ -379,16 +353,6 @@ static return_t init_enrh(void)
         tx_thread_sleep(1);
     }
 
-   /* LOG_D(LOG_STD,"Force start");
-    h_time_update(&ts);
-    motor_drive_sequence(&ptr->sequences.init.enrh_force,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    ts_elasped = FALSE;
-    while(!ts_elasped)
-    {
-        h_time_is_elapsed_ms(&ts, 2000, &ts_elasped);
-        tx_thread_sleep(1);
-    }
-    LOG_D(LOG_STD,"Force stop");*/
     scroll_stop();
     delay_ms(1000);
     return ret;
@@ -407,22 +371,18 @@ static return_t init_enrl(void)
     bool_t ts_elasped;
     h_time_update(&ts);
     h_time_update(&ts_start);
-    //motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
-    //motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
-
 
     int32_t pulsesH1;
     int32_t pulsesH2;
 
 
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
-    //LOG_D(LOG_STD,"pStart %d",pulsesH1);
     motor_drive_sequence(&ptr->sequences.init.enrl_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     delay_ms(500);
     h_time_update(&ts2);
     while(!end)
     {
-        if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
+        CHECK_STOP_REQUEST_NESTED();
 
 
 
@@ -484,20 +444,10 @@ static return_t init_enrl(void)
                 end=TRUE;
             }
             pulsesH1 = pulsesH2;
-
-
-
         }
 
-        /*h_time_is_elapsed_ms(&ts, 20, &ts_elasped);
-        if(ts_elasped == TRUE)
-        {
-            h_time_update(&ts);
-            LOG_D(LOG_STD,"current %d mA  - %d mA",adc_inst.instantaneous.iin,adc_inst.average.iin);
-        }*/
-
         uint16_t value_iin = adc_inst.instantaneous.iin;
-        if(value_iin > 3000)
+        if(value_iin > ptr->current_stop)
         {
             motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             end=TRUE;
@@ -525,7 +475,7 @@ static return_t init_enrl_prime_band_low(void)
     motor_drive_sequence(&ptr->sequences.init.lowerBand,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     while(!end)
     {
-        if(mode_stop_order == TRUE) return F_RET_MOTOR_INIT_CANCELLED;
+        CHECK_STOP_REQUEST_NESTED();
 
         if((motors_instance.motorH->error != 0x00) )
         {

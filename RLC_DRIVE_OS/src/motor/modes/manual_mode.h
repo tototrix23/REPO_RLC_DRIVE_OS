@@ -13,8 +13,6 @@
 #include <_core/c_common.h>
 
 
-void manual_mode_stop(void);
-bool_t manual_mode_is_running(void);
 void manual_mode_process(void);
 
 #endif /* APPLICATION_MOTOR_MODES_MANUAL_MODE_H_ */

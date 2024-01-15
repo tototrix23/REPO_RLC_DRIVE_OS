@@ -38,7 +38,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
         return ret;
 
     motor_phase_t *phase = 0x00;
-    uint8_t i=0;
+    volatile uint8_t i=0;
 
 
     motors_instance.motors[0]->motor_ctrl_instance->p_api->statusGet(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl, (uint8_t *)&motors_instance.motors[0]->status);

@@ -16,10 +16,11 @@
 #include <motor/motor_type.h>
 
 #define MOTORS_SET_ERROR_AND_RETURN(e,r)  motors_instance.error = e;\
-                                          mode_running = FALSE;\
-                                          mode_stop_order = FALSE;\
                                           LOG_E(LOG_STD,"MOTOR ERROR %d",e);\
                                           return r;\
+
+
+
 
 
 typedef struct st_motor_t

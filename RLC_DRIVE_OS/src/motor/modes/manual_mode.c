@@ -16,54 +16,19 @@
 #include <motor/drive_process/drive_process.h>
 #include <motor/drive_process/drive_sequence.h>
 #include <remotectrl/remotectrl.h>
-
+#include <adc/adc.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
 #define LOG_MODULE    "MANUAL"
 
 
-static bool_t mode_running = FALSE;
-static bool_t mode_stop_order = FALSE;
 
 
-static bool_t check_stop_request(void);
-
-static bool_t check_stop_request(void)
-{
-    motor_profil_t *ptr = &motors_instance.profil;
-    sequence_result_t sequence_result;
-    if(mode_stop_order == TRUE)
-    {
-        // Arrêt des moteurs
-        motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-        // RAZ des flags du mode manuel
-        mode_stop_order = FALSE;
-        mode_running = FALSE;
-        //
-        LOG_D(LOG_STD,"manual mode stop order applied")
-        // Fin
-        return TRUE;
-    }
-    else
-        return FALSE;
-}
-
-
-void manual_mode_stop(void)
-{
-    mode_stop_order = TRUE;
-    LOG_D(LOG_STD,"order to stop manual mode")
-}
-
-bool_t manual_mode_is_running(void)
-{
-   return mode_running;
-}
 
 
 void manual_mode_process(void) {
-
+    drive_control.running = TRUE;
 	motor_profil_t *ptr = &motors_instance.profil;
     uint8_t remote = 0x00;
     uint8_t remote_state=0x00;
@@ -72,7 +37,7 @@ void manual_mode_process(void) {
     c_timespan_t ts;
     bool_t ts_elasped;
     h_time_update(&ts);
-    mode_running = TRUE;
+
 
     if(m12_enrh) remote = remote | 0x01;
     if(m12_enrl) remote = remote | 0x02;
@@ -89,22 +54,26 @@ void manual_mode_process(void) {
     {
 
 
-        /*h_time_is_elapsed_ms(&ts, 1000, &ts_elasped);
+        h_time_is_elapsed_ms(&ts, 1000, &ts_elasped);
         if(ts_elasped == TRUE)
         {
             h_time_update(&ts);
 
-            int32_t pulsesH;
+            /*int32_t pulsesH;
             int32_t pulsesL;
             motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
             motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
 
-            LOG_D(LOG_STD,"pulsesH: %d  dirH: %d  pulsesL: %d dirL: %d",pulsesH,motors_instance.motorH->hall_vars->real_direction,pulsesL,motors_instance.motorL->hall_vars->real_direction);
+
+            LOG_D(LOG_STD,"pulsesH: %d  dirH: %d  pulsesL: %d dirL: %d",pulsesH,motors_instance.motorH->hall_vars->real_direction,pulsesL,motors_instance.motorL->hall_vars->real_direction);*/
+
+            //LOG_D(LOG_STD,"MotH IU:%f IW:%f   MotL IU:%f IW:%f",adc_inst.motorH.iu_ad,adc_inst.motorH.iw_ad,adc_inst.motorL.iu_ad,adc_inst.motorL.iw_ad);
+
         }
-*/
+
 
         // Si une demande d'arrêt du modem manuel est présente
-        if(check_stop_request() == TRUE) return;
+        if(drive_stop_request() == TRUE) return;
 
         // Récupération de l'état de la télécommande
         remote = 0x00;
@@ -178,7 +147,7 @@ void manual_mode_process(void) {
 
     }while(!end);
 
-    mode_running = FALSE;
+
 }
 
 #endif /* APPLICATION_MOTOR_MODES_MANUAL_MODE_C_ */

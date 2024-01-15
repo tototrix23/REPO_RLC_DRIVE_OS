@@ -57,6 +57,8 @@ void main_thread_entry(void)
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
     // Initialisation de la partie moteurs (partie API)
+    LOG_I(LOG_STD,"VM ON");
+    R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
     delay_ms(1000);
     LOG_I(LOG_STD,"INIT FSP MOTOR");
     motor_init_fsp();

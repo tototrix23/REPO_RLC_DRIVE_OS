@@ -1786,6 +1786,8 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
                 }
                 else
                 {
+                    volatile float *ptr = &p_ctrl->f4_v_ref;
+                    *ptr = 0.0f;
                     p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;
                 }
 
