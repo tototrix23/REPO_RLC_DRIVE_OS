@@ -2,63 +2,6 @@
 <azone>
     <rzone name="R7FA6T2BD3CFP.rzone"/>
     <partition>
-        <peripheral name="GPT0" group="GPT" security=""/>
-        <peripheral name="GPT_POEG3" group="GPT_POEG" security=""/>
-        <peripheral name="AGT0" group="AGT" security=""/>
-        <peripheral name="ICU_EXT_IRQ">
-            <slot name="ICU_EXT_IRQ10" secure="true"/>
-            <slot name="ICU_EXT_IRQ11" secure="true"/>
-            <slot name="ICU_EXT_IRQ1" secure="true"/>
-            <slot name="ICU_EXT_IRQ12" secure="true"/>
-            <slot name="ICU_EXT_IRQ13" secure="true"/>
-            <slot name="ICU_EXT_IRQ14" secure="true"/>
-        </peripheral>
-        <peripheral name="GPT4" group="GPT" security=""/>
-        <peripheral name="GPT5" group="GPT" security=""/>
-        <peripheral name="GPT6" group="GPT" security=""/>
-        <peripheral name="AGT1" group="AGT" security=""/>
-        <peripheral name="GPT7" group="GPT" security=""/>
-        <peripheral name="GPT8" group="GPT" security=""/>
-        <peripheral name="GPT9" group="GPT" security=""/>
-        <peripheral name="ICU">
-            <slot name="IRQ0" secure="true"/>
-            <slot name="IRQ1" secure="true"/>
-            <slot name="IRQ2" secure="true"/>
-            <slot name="IRQ3" secure="true"/>
-            <slot name="IRQ4" secure="true"/>
-            <slot name="IRQ5" secure="true"/>
-            <slot name="IRQ6" secure="true"/>
-            <slot name="IRQ7" secure="true"/>
-            <slot name="IRQ8" secure="true"/>
-            <slot name="IRQ9" secure="true"/>
-            <slot name="IRQ10" secure="true"/>
-            <slot name="IRQ11" secure="true"/>
-            <slot name="IRQ12" secure="true"/>
-            <slot name="IRQ13" secure="true"/>
-            <slot name="IRQ14" secure="true"/>
-            <slot name="IRQ15" secure="true"/>
-            <slot name="IRQ16" secure="true"/>
-            <slot name="IRQ17" secure="true"/>
-            <slot name="IRQ18" secure="true"/>
-            <slot name="IRQ19" secure="true"/>
-            <slot name="IRQ20" secure="true"/>
-            <slot name="IRQ21" secure="true"/>
-            <slot name="IRQ22" secure="true"/>
-            <slot name="IRQ23" secure="true"/>
-            <slot name="IRQ24" secure="true"/>
-            <slot name="IRQ25" secure="true"/>
-            <slot name="IRQ26" secure="true"/>
-            <slot name="IRQ27" secure="true"/>
-            <slot name="IRQ28" secure="true"/>
-            <slot name="IRQ29" secure="true"/>
-            <slot name="IRQ30" secure="true"/>
-            <slot name="IRQ31" secure="true"/>
-            <slot name="IRQ32" secure="true"/>
-            <slot name="IRQ33" secure="true"/>
-            <slot name="IRQ34" secure="true"/>
-            <slot name="IRQ35" secure="true"/>
-            <slot name="IRQ36" secure="true"/>
-        </peripheral>
         <peripheral name="PORT0" group="PORT">
             <slot name="P000" secure="true"/>
             <slot name="P001" secure="true"/>
@@ -126,6 +69,63 @@
             <slot name="PE12" secure="true"/>
             <slot name="PE14" secure="true"/>
             <slot name="PE15" secure="true"/>
+        </peripheral>
+        <peripheral name="GPT0" group="GPT" security=""/>
+        <peripheral name="GPT_POEG3" group="GPT_POEG" security=""/>
+        <peripheral name="AGT0" group="AGT" security=""/>
+        <peripheral name="ICU_EXT_IRQ">
+            <slot name="ICU_EXT_IRQ10" secure="true"/>
+            <slot name="ICU_EXT_IRQ11" secure="true"/>
+            <slot name="ICU_EXT_IRQ1" secure="true"/>
+            <slot name="ICU_EXT_IRQ12" secure="true"/>
+            <slot name="ICU_EXT_IRQ13" secure="true"/>
+            <slot name="ICU_EXT_IRQ14" secure="true"/>
+        </peripheral>
+        <peripheral name="GPT4" group="GPT" security=""/>
+        <peripheral name="GPT5" group="GPT" security=""/>
+        <peripheral name="GPT6" group="GPT" security=""/>
+        <peripheral name="AGT1" group="AGT" security=""/>
+        <peripheral name="GPT7" group="GPT" security=""/>
+        <peripheral name="GPT8" group="GPT" security=""/>
+        <peripheral name="GPT9" group="GPT" security=""/>
+        <peripheral name="ICU">
+            <slot name="IRQ0" secure="true"/>
+            <slot name="IRQ1" secure="true"/>
+            <slot name="IRQ2" secure="true"/>
+            <slot name="IRQ3" secure="true"/>
+            <slot name="IRQ4" secure="true"/>
+            <slot name="IRQ5" secure="true"/>
+            <slot name="IRQ6" secure="true"/>
+            <slot name="IRQ7" secure="true"/>
+            <slot name="IRQ8" secure="true"/>
+            <slot name="IRQ9" secure="true"/>
+            <slot name="IRQ10" secure="true"/>
+            <slot name="IRQ11" secure="true"/>
+            <slot name="IRQ12" secure="true"/>
+            <slot name="IRQ13" secure="true"/>
+            <slot name="IRQ14" secure="true"/>
+            <slot name="IRQ15" secure="true"/>
+            <slot name="IRQ16" secure="true"/>
+            <slot name="IRQ17" secure="true"/>
+            <slot name="IRQ18" secure="true"/>
+            <slot name="IRQ19" secure="true"/>
+            <slot name="IRQ20" secure="true"/>
+            <slot name="IRQ21" secure="true"/>
+            <slot name="IRQ22" secure="true"/>
+            <slot name="IRQ23" secure="true"/>
+            <slot name="IRQ24" secure="true"/>
+            <slot name="IRQ25" secure="true"/>
+            <slot name="IRQ26" secure="true"/>
+            <slot name="IRQ27" secure="true"/>
+            <slot name="IRQ28" secure="true"/>
+            <slot name="IRQ29" secure="true"/>
+            <slot name="IRQ30" secure="true"/>
+            <slot name="IRQ31" secure="true"/>
+            <slot name="IRQ32" secure="true"/>
+            <slot name="IRQ33" secure="true"/>
+            <slot name="IRQ34" secure="true"/>
+            <slot name="IRQ35" secure="true"/>
+            <slot name="IRQ36" secure="true"/>
         </peripheral>
     </partition>
 </azone>

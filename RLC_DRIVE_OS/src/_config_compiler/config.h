@@ -61,6 +61,7 @@
 #define ADC_IIN_AVERAGE         128.0f
 #define ADC_VHALL1_AVERAGE      32.0f
 #define ADC_VHALL2_AVERAGE      32.0f
+#define ADC_IMOT_AVERAGE        1024.0f
 
 // Adaptation des niveau en fonction des ponts diviseurs
 #define ADC_VIN_ADAPT(f)        (f*10.1f)

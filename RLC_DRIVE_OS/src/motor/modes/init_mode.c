@@ -22,13 +22,10 @@
 #define LOG_MODULE    "INIT"
 
 
-static int32_t pulses[5];
 
-static void positions_process(void);
 static return_t init_strectch(void);
-static return_t init_enrh(void);
 static return_t init_enrl(void);
-static return_t init_enrl_prime_band_low(void);
+static return_t init_finish(void);
 static void scroll_stop(void);
 
 
@@ -78,7 +75,8 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
     ret = init_enrl();
     CHECK_STOP_REQUEST();
-    delay_ms(500);
+    init_finish();
+    delay_ms(1000);
     CHECK_STOP_REQUEST();
     drive_control.running=FALSE;
     ptr->panels.index = 0;
@@ -89,67 +87,6 @@ return_t init_mode_process(void) {
     return X_RET_OK;
 
 
-    delay_ms(1000);
-    CHECK_STOP_REQUEST();
-
-    //----------------------------------------------------------------------------------------------
-    // Recherche bande mère basse
-    //----------------------------------------------------------------------------------------------
-    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
-    ret = init_enrh();
-    CHECK_STOP_REQUEST();
-    /*motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    LOG_W(LOG_STD,"%d",pulsesH);*/
-    delay_ms(300);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-    LOG_W(LOG_STD,"PulsesH: %d PulsesL: %d",pulsesH,pulsesL);
-    pulses[0] = abs(pulsesH);
-
-    //----------------------------------------------------------------------------------------------
-    // Tirage bande mère basse
-    //----------------------------------------------------------------------------------------------
-    ret = init_enrl_prime_band_low();
-    CHECK_STOP_REQUEST();
-    delay_ms(100);
-
-
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-    pulses[1] = abs(pulsesH);
-    positions_process();
-    //----------------------------------------------------------------------------------------------
-    // Recherche bande mère haute
-    //----------------------------------------------------------------------------------------------
-    /*ret = init_enrl();
-    if(drive_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
-
-
-    //----------------------------------------------------------------------------------------------
-    // Positionnement sur 1ere affiche
-    //----------------------------------------------------------------------------------------------
-    LOG_I(LOG_STD,"init_poster");
-    ret = init_poster();
-    LOG_I(LOG_STD,"fin_init_poster");
-    if(drive_stop_request()) return F_RET_MOTOR_INIT_CANCELLED;
-    //----------------------------------------------------------------------------------------------
-    // Fin
-    //----------------------------------------------------------------------------------------------
-
-*/
-    motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-    CHECK_STOP_REQUEST();
-    delay_ms(1000);
-    CHECK_STOP_REQUEST();
-    drive_control.running=FALSE;
-    set_drive_mode(MOTOR_AUTO_MODE);
-    tx_thread_sleep(1);
-
-
-
- return ret;
 }
 
 
@@ -261,102 +198,26 @@ static return_t init_strectch(void)
     return ret;
 }
 
-static return_t init_enrh(void)
+
+static return_t init_finish(void)
 {
     return_t ret = X_RET_OK;
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    c_timespan_t ts;
-    c_timespan_t ts_start;
-    bool_t end = FALSE;
-    bool_t ts_elasped;
-    c_timespan_t ts2;
-    bool_t start_finished = FALSE;
-    h_time_update(&ts);
-    h_time_update(&ts_start);
-    int32_t pulsesH1;
-    int32_t pulsesH2;
-    int32_t pulsesL;
-    LOG_D(LOG_STD,"ENRH START");
+    delay_ms(200);
+    int32_t pulsesH1,pulsesH2;
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
-    //motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    //motor_drive_sequence(&ptr->sequences.init.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    motor_drive_sequence(&ptr->sequences.init.enrh_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    delay_ms(500);
-    h_time_update(&ts2);
-    while(!end)
-    {
-        CHECK_STOP_REQUEST_NESTED();
-
-        h_time_is_elapsed_ms(&ts_start, 1000, &ts_elasped);
-        if(ts_elasped == TRUE && start_finished == FALSE)
-        {
-            start_finished = TRUE;
-            motor_drive_sequence(&ptr->sequences.init.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-        }
-
-        h_time_is_elapsed_ms(&ts, 60000, &ts_elasped);
-        if(ts_elasped == TRUE)
-        {
-            // Arrêt des moteurs
-            motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-            // Macro d'enregistrement d'erreur et code de retour
-            MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_L,F_RET_MOTOR_INIT_TIMEOUT_BASE_L);
-        }
-
-        if((motors_instance.motorH->error != 0x00) )
-        {
-            if(motors_instance.motorH->error != 0x00)
-            {
-                if((motors_instance.motorH->error == MOTOR_ERROR_OVER_CURRENT_SW) ||
-                   (motors_instance.motorH->error == MOTOR_ERROR_BEMF_TIMEOUT))
-
-                {
-                    scroll_stop();
-                    LOG_D(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
-                    end = TRUE;
-                }
-                else
-                {
-                    scroll_stop();
-                    LOG_E(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
-                    MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_UNEXPECTED_ERROR);
-                }
-            }
-        }
-
-        bool_t ts2_elasped=FALSE;
-        h_time_is_elapsed_ms(&ts2, 100, &ts2_elasped);
-        if(ts2_elasped == TRUE)
-        {
-            h_time_update(&ts2);
-            motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
-            motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-            if(abs(pulsesH2 - pulsesH1) <= 5)
-            {
-                scroll_stop();
-                LOG_D(LOG_STD,"enrH stop condition");
-                end=TRUE;
-            }
-            pulsesH1 = pulsesH2;
-        }
-
-
-        uint16_t value_iin = adc_inst.instantaneous.iin;
-        if(value_iin > ptr->current_stop)
-        {
-            scroll_stop();
-            end=TRUE;
-            LOG_D(LOG_STD,"current %d mA",value_iin);
-        }
-
-        tx_thread_sleep(1);
-    }
-
+    //LOG_D(LOG_STD,"P1 %d",pulsesH1);
+    motor_drive_sequence(&ptr->sequences.init.enrl_finish,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    delay_ms(1500);
     scroll_stop();
-    delay_ms(1000);
+    delay_ms(200);
+    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
+    LOG_D(LOG_STD,"Delta %d",pulsesH2-pulsesH1);
     return ret;
 }
+
+
 
 static return_t init_enrl(void)
 {
@@ -460,54 +321,6 @@ static return_t init_enrl(void)
 }
 
 
-static return_t init_enrl_prime_band_low(void)
-{
-    return_t ret = X_RET_OK;
-    motor_profil_t *ptr = &motors_instance.profil;
-    sequence_result_t sequence_result;
-    c_timespan_t ts;
-    bool_t end = FALSE;
-    int32_t pulsesL;
-    h_time_update(&ts);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
-
-
-    motor_drive_sequence(&ptr->sequences.init.lowerBand,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    while(!end)
-    {
-        CHECK_STOP_REQUEST_NESTED();
-
-        if((motors_instance.motorH->error != 0x00) )
-        {
-            LOG_E(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
-            scroll_stop();
-            MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_UNEXPECTED_ERROR);
-        }
-
-
-
-        motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-
-        if(abs(pulsesL)>= ptr->sizes.prime_band_lower_size)
-        {
-            end = TRUE;
-        }
-
-        tx_thread_sleep(1);
-    }
-
-
-    h_time_update(&ts);
-    scroll_stop();
-
-    delay_ms(500);
-    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
-    LOG_D(LOG_STD,"PulsesL: %d",pulsesL);
-
-
-
-    return ret;
-}
 
 
 
@@ -517,94 +330,6 @@ static void scroll_stop(void)
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
     motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    motor_drive_sequence(&ptr->sequences.init.posterStop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.init.end,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 }
 
-static void positions_process(void)
-{
-
-    motor_profil_t *ptr = &motors_instance.profil;
-    memset(ptr->panels.positions_compH,0x00,sizeof(ptr->panels.positions_compH));
-    memset(ptr->panels.positions_compL,0x00,sizeof(ptr->panels.positions_compL));
-
-    int32_t total_pulses = pulses[0];
-
-    if(total_pulses > ptr->sizes.prime_band_upper_size)
-        total_pulses = total_pulses-ptr->sizes.prime_band_upper_size;
-    else total_pulses = 0;
-    if(total_pulses > ptr->sizes.prime_band_lower_size)
-            total_pulses = total_pulses-ptr->sizes.prime_band_lower_size;
-    else total_pulses = 0;
-    volatile uint8_t count = 0;
-    if(total_pulses >0)
-    {
-        volatile float fcount = ((float)total_pulses / (float)ptr->sizes.poster_size)+0.5f;
-        count = (uint8_t) fcount;
-        if(count >0) count++;
-        else
-        {
-            float f = ((float)ptr->sizes.prime_band_upper_size)*0.9f;
-            if(pulses[0] > (int32_t)f)
-                count = 1;
-        }
-    }
-    else
-        count = 0;
-
-    ptr->panels.count = count;
-    memset(ptr->panels.positions,0x00,sizeof(ptr->panels.positions));
-    LOG_I(LOG_STD,"Panels count: %d",ptr->panels.count);
-    if(ptr->panels.count == 0) return;
-
-    float coeff=0.0f;
-    switch(ptr->panels.count)
-    {
-        case 1:
-            ptr->panels.positions[0] = ptr->sizes.prime_band_upper_size;
-            break;
-
-        case 2:
-            ptr->panels.positions[0] = ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[1] = pulses[1];
-            break;
-
-        case 3:
-            coeff = (float)pulses[1] - (float)ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[0] = ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[1] = (int32_t)(coeff * 0.5132f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[2] = pulses[1];
-            break;
-
-        case 4:
-            coeff = (float)pulses[1] - (float)ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[0] = ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[1] = (int32_t)(coeff * 0.35054f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[2] = (int32_t)(coeff * 0.68305f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[3] = pulses[1];
-            break;
-
-        case 5:
-            coeff = (float)pulses[1] - (float)ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[0] = ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[1] = (int32_t)(coeff * 0.26777f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[2] = (int32_t)(coeff * 0.52269f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[3] = (int32_t)(coeff * 0.76631f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[4] = pulses[1];
-            break;
-
-        default:
-            break;
-    }
-
-
-
-    int32_t i=0;
-    for(i=0;i<ptr->panels.count;i++)
-        LOG_I(LOG_STD,"Pos%d = %d",i,ptr->panels.positions[i]);
-
-
-    ptr->panels.index = ptr->panels.count-1;
-
-    volatile uint8_t end=1;
-}

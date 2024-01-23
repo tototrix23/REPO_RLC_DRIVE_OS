@@ -131,13 +131,10 @@ typedef struct st_motor_profil_t
         {
             c_linked_list_t stretch1;
             c_linked_list_t stretch2;
-            c_linked_list_t enrh_start;
-            c_linked_list_t enrh;
             c_linked_list_t enrl_start;
             c_linked_list_t enrl;
-            c_linked_list_t enrh_force;
-            c_linked_list_t posterStop;
-            c_linked_list_t lowerBand;
+            c_linked_list_t enrl_finish;
+            c_linked_list_t end;
         }init;
 
         struct
@@ -147,6 +144,10 @@ typedef struct st_motor_profil_t
             c_linked_list_t poster_enrl;
             c_linked_list_t poster_stop;
             c_linked_list_t lower_band_enrh;
+            c_linked_list_t lower_band_enrl;
+
+            c_linked_list_t poster_init_enrh_slow;
+            c_linked_list_t poster_init_enrh;
         }automatic;
     }sequences;
 

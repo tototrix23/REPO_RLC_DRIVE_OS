@@ -96,9 +96,13 @@ void adc_interrupt(adc_callback_args_t *p_args)
             p_args->p_context = motors_instance.motorH->motor_driver_instance;
             rm_motor_120_driver_cyclic(p_args);
 
-            /*motor_120_driver_instance_ctrl_t* driverH_ctrl = (motor_120_driver_instance_ctrl_t*)motors_instance.motorH->motor_driver_instance->p_ctrl;
-            adc_inst.motorH.iu_ad = driverH_ctrl->f_iu_ad;
-            adc_inst.motorH.iw_ad = driverH_ctrl->f_iw_ad;*/
+            motor_120_driver_instance_ctrl_t* driverH_ctrl = (motor_120_driver_instance_ctrl_t*)motors_instance.motorH->motor_driver_instance->p_ctrl;
+            adc_inst.motorH.iu_ad = (adc_inst.motorH.iu_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
+            adc_inst.motorH.iu_ad = adc_inst.motorH.iu_ad + (driverH_ctrl->f_iu_ad/ADC_IMOT_AVERAGE);
+            adc_inst.motorH.iw_ad = (adc_inst.motorH.iw_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
+            adc_inst.motorH.iw_ad = adc_inst.motorH.iw_ad + (driverH_ctrl->f_iw_ad/ADC_IMOT_AVERAGE);
+
+
 
         }
         if (p_args->group_mask == ADC_GROUP_MASK_2)
@@ -106,9 +110,11 @@ void adc_interrupt(adc_callback_args_t *p_args)
             p_args->p_context = motors_instance.motorL->motor_driver_instance;
             rm_motor_120_driver_cyclic(p_args);
 
-            /*motor_120_driver_instance_ctrl_t* driverL_ctrl = (motor_120_driver_instance_ctrl_t*)motors_instance.motorL->motor_driver_instance->p_ctrl;
-            adc_inst.motorL.iu_ad = driverL_ctrl->f_iu_ad;
-            adc_inst.motorL.iw_ad = driverL_ctrl->f_iw_ad;*/
+            motor_120_driver_instance_ctrl_t* driverL_ctrl = (motor_120_driver_instance_ctrl_t*)motors_instance.motorL->motor_driver_instance->p_ctrl;
+            adc_inst.motorL.iu_ad = (adc_inst.motorL.iu_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
+            adc_inst.motorL.iu_ad = adc_inst.motorL.iu_ad + (driverL_ctrl->f_iu_ad/ADC_IMOT_AVERAGE);
+            adc_inst.motorL.iw_ad = (adc_inst.motorL.iw_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
+            adc_inst.motorL.iw_ad = adc_inst.motorL.iw_ad + (driverL_ctrl->f_iw_ad/ADC_IMOT_AVERAGE);
 
         }
         if (p_args->group_mask == ADC_GROUP_MASK_8)

@@ -88,7 +88,7 @@ void main_thread_entry(void)
     while (1)
     {
 
-        remotectrl_process();
+        //remotectrl_process();
         tx_thread_sleep(10);
 
 

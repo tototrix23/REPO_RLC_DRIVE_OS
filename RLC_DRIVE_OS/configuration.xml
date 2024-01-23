@@ -968,7 +968,7 @@
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
       <property id="module.middleware.motor_120_driver.dead_time" value="100"/>
-      <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
+      <property id="module.middleware.motor_120_driver.current_range" value="22.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
       <property id="module.middleware.motor_120_driver.ad_current_offset" value="0x7FF"/>
@@ -1869,7 +1869,7 @@
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50"/>
       <property id="module.middleware.motor_120_driver.dead_time" value="100"/>
-      <property id="module.middleware.motor_120_driver.current_range" value="33.0"/>
+      <property id="module.middleware.motor_120_driver.current_range" value="22.0"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
       <property id="module.middleware.motor_120_driver.ad_current_offset" value="0x7FF"/>

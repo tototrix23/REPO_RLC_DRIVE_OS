@@ -1112,7 +1112,7 @@ FSP Configuration
           General: PWM timer frequency (MHz): 120
           General: PWM carrier period (Microseconds): 50
           General: Dead time (Raw counts): 100
-          General: Current range (A): 33.0
+          General: Current range (A): 22.0
           General: Voltage range (V): 33.33
           General: Resolution of A/D conversion: 0xFFF
           General: Offset of A/D conversion for current: 0x7FF
@@ -2022,7 +2022,7 @@ FSP Configuration
           General: PWM timer frequency (MHz): 120
           General: PWM carrier period (Microseconds): 50
           General: Dead time (Raw counts): 100
-          General: Current range (A): 33.0
+          General: Current range (A): 22.0
           General: Voltage range (V): 33.33
           General: Resolution of A/D conversion: 0xFFF
           General: Offset of A/D conversion for current: 0x7FF

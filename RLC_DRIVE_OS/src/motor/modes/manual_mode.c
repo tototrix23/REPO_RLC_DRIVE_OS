@@ -54,7 +54,7 @@ void manual_mode_process(void) {
     {
 
 
-        h_time_is_elapsed_ms(&ts, 1000, &ts_elasped);
+        h_time_is_elapsed_ms(&ts, 500, &ts_elasped);
         if(ts_elasped == TRUE)
         {
             h_time_update(&ts);
@@ -66,8 +66,17 @@ void manual_mode_process(void) {
 
 
             LOG_D(LOG_STD,"pulsesH: %d  dirH: %d  pulsesL: %d dirL: %d",pulsesH,motors_instance.motorH->hall_vars->real_direction,pulsesL,motors_instance.motorL->hall_vars->real_direction);*/
+            //LOG_D(LOG_STD,"MotH IU:%f IW:%f   MotL IU:%f IW:%f   IIN:%f",adc_inst.motorH.iu_ad,adc_inst.motorH.iw_ad,adc_inst.motorL.iu_ad,adc_inst.motorL.iw_ad,adc_inst.average.iin);
 
-            //LOG_D(LOG_STD,"MotH IU:%f IW:%f   MotL IU:%f IW:%f",adc_inst.motorH.iu_ad,adc_inst.motorH.iw_ad,adc_inst.motorL.iu_ad,adc_inst.motorL.iw_ad);
+            float ic = (-adc_inst.motorH.iu_ad-adc_inst.motorH.iw_ad);
+            float diffH = (adc_inst.motorH.iu_ad-ic);
+            diffH = diffH * 0.577350269f;
+
+            ic = (-adc_inst.motorL.iu_ad-adc_inst.motorL.iw_ad);
+            float diffL = (adc_inst.motorL.iu_ad-ic);
+            diffL = diffL * 0.577350269f;
+
+            LOG_D(LOG_STD,"%f %f - IIN:%d",diffH,diffL,adc_inst.average.iin);
 
         }
 
