@@ -68,14 +68,25 @@ static void poster_comp(uint8_t direction,uint8_t index)
     if(direction == AUTO_ENRH)
     {
         ptr->panels.positions_compH[index] = ptr->panels.positions_compH[index]+diff;
+        if(abs(ptr->panels.positions_compH[index]) > 100 )
+        {
+            LOG_W(LOG_STD,"Comp init ENRH on poster %d",index);
+            ptr->panels.positions_compH[index] = 0;
+        }
         //LOG_D(LOG_STD,"compH panel%d -> %d",index,ptr->panels.positions_compH[index]);
-        LOG_I(LOG_STD,"%d / %d (%d) pos compH: %d",pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compH[index]);
+        LOG_I(LOG_STD,"%d / %d (%+04d) pos compH: %+04d",pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compH[index]);
     }
     else
     {
         ptr->panels.positions_compL[index] = ptr->panels.positions_compL[index]+diff;
+        if(abs(ptr->panels.positions_compL[index]) > 100 )
+        {
+            LOG_W(LOG_STD,"Comp init ENRL on poster %d",index);
+            ptr->panels.positions_compL[index] = 0;
+        }
+
         //LOG_D(LOG_STD,"compL panel%d -> %d",index,ptr->panels.positions_compL[index]);
-        LOG_I(LOG_STD,"%d / %d (%d) pos compL: %d",pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compL[index]);
+        LOG_I(LOG_STD,"%d / %d (%+04d) pos compL: %+04d",pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compL[index]);
     }
 
 
@@ -173,7 +184,7 @@ static return_motor_cplx_t low_band_enrh(void)
    h_time_update(&ts);
    int32_t pulsesH = 0;
    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-   //LOG_I(LOG_STD,"pulsesH: %d",pulsesH);
+   LOG_I(LOG_STD,"low_band_enrh");
 
    motor_drive_sequence(&ptr->sequences.automatic.lower_band_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
    CHECK_STOP_REQUEST_NESTED_CPLX();
@@ -219,11 +230,16 @@ static return_motor_cplx_t low_band_enrl(void)
    motor_profil_t *ptr = &motors_instance.profil;
    sequence_result_t sequence_result;
    c_timespan_t ts;
+   c_timespan_t ts_error;
+   bool_t error_flag = FALSE;
    bool_t ts_elasped;
    bool_t end = FALSE;
    int32_t pulsesL = 0;
-
+   uint8_t error_count=0;
+   LOG_I(LOG_STD,"low_band_enrl");
    h_time_update(&ts);
+   h_time_update(&ts_error);
+
    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
    motor_drive_sequence(&ptr->sequences.automatic.lower_band_enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
@@ -247,13 +263,32 @@ static return_motor_cplx_t low_band_enrl(void)
            end = TRUE;
        }
 
+
+       h_time_is_elapsed_ms(&ts_error, 250, &ts_elasped);
+       if(ts_elasped && error_flag==FALSE)
+       {
+           error_flag = TRUE;
+           motors_instance.motorL->error = 0x10;
+       }
+
        if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
        {
           scroll_stop();
-          end = TRUE;
-          return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
-          LOG_W(LOG_STD,"Error FSP");
-          return ret;
+          error_count++;
+          if(error_count >= 2)
+          {
+              end = TRUE;
+              return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
+              LOG_E(LOG_STD,"Error FSP");
+              return ret;
+          }
+          else
+          {
+              motors_instance.motorH->error=0x00;
+              motors_instance.motorL->error=0x00;
+              LOG_W(LOG_STD,"Error FSP, retry");
+              motor_drive_sequence(&ptr->sequences.automatic.lower_band_enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+          }
        }
        tx_thread_sleep(1);
 
@@ -270,6 +305,10 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    return_motor_cplx_t ret;
    return_motor_cplx_update(&ret,X_RET_OK);
 
+   c_timespan_t ts_error;
+   bool_t error_flag = FALSE;
+   uint8_t error_count=0;
+
    motor_profil_t *ptr = &motors_instance.profil;
    sequence_result_t sequence_result;
    c_timespan_t ts;
@@ -281,12 +320,15 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    int32_t pulsesH;
    int32_t pulsesH1;
    int32_t pulsesH2;
+   bool_t init_speed_finished;
+   poster_change_start:
+   h_time_update(&ts_error);
 
-   bool_t init_speed_finished=FALSE;
+   init_speed_finished = FALSE;
    h_time_update(&ts);
 
    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH_start);
-   //LOG_I(LOG_STD,"pulsesH_start: %d",pulsesH_start);
+
    pulsesH1 = pulsesH_start;
    if(direction == AUTO_ENRH)
    {
@@ -309,7 +351,13 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
 
 
        // Gestion d'un timeout sur le changement d'affiche
-       h_time_is_elapsed_ms(&ts, 8000, &ts_elasped);
+       uint32_t timeout_error;
+       if(init_phase == TRUE)
+           timeout_error = 5000;
+       else
+           timeout_error = 3500;
+
+       h_time_is_elapsed_ms(&ts, timeout_error, &ts_elasped);
        if(ts_elasped == TRUE)
        {
            h_time_update(&ts);
@@ -397,32 +445,51 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        }
        else ovc_counter = 0;*/
 
+       /*h_time_is_elapsed_ms(&ts_error, 1500, &ts_elasped);
+       if(ts_elasped && error_flag==FALSE)
+       {
+           error_flag = TRUE;
+           motors_instance.motorL->error = 0x10;
+       }*/
+
        // Surveillance des erreurs remontées par la librairie RENESAS
        if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
        {
            scroll_stop();
-           end = TRUE;
-           return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
-           LOG_W(LOG_STD,"Error FSP");
-           return ret;
+
+           error_count++;
+           if(error_count >= 2)
+           {
+               end = TRUE;
+               return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
+               LOG_E(LOG_STD,"Error FSP");
+               return ret;
+           }
+           else
+           {
+               motors_instance.motorH->error = 0;
+               motors_instance.motorL->error = 0;
+               LOG_W(LOG_STD,"Error FSP");
+               goto poster_change_start;
+           }
        }
 
        // Gestion de l'évolution du codeur haut.
        // Cela permet de detecter un train en butée.
        bool_t ts2_elasped;
        if(init_phase == TRUE && init_speed_finished == FALSE)
-           h_time_is_elapsed_ms(&ts2, 300, &ts2_elasped);
+           h_time_is_elapsed_ms(&ts2, 400, &ts2_elasped);
        else
-           h_time_is_elapsed_ms(&ts2, 100, &ts2_elasped);
+           h_time_is_elapsed_ms(&ts2, 400, &ts2_elasped);
 
-       if(ts2_elasped == TRUE)
+       if(ts2_elasped == TRUE && init_phase == TRUE)
        {
            h_time_update(&ts2);
            motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
            if(abs(pulsesH2 - pulsesH1) <= 3)
            {
                scroll_stop();
-               LOG_W(LOG_STD,"no pulses",pulsesH2);
+               LOG_W(LOG_STD,"no pulses");
                return_motor_cplx_update(&ret,F_RET_MOTOR_AUTO_TIMEOUT_PULSES);
                return ret;
            }
@@ -430,6 +497,18 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        }
        tx_thread_sleep(1);
    }
+
+   /*c_timespan_t final_ts;
+   h_time_get_elapsed(&ts, &final_ts);
+   uint32_t local_index = index;
+   if(direction == AUTO_ENRH)
+   {
+       LOG_I(LOG_STD,"%dms panel %d ENRH",(uint32_t)final_ts.ms,(uint32_t)local_index);
+   }
+   else
+   {
+       LOG_I(LOG_STD,"%dms panel %d ENRL",(uint32_t)final_ts.ms,(uint32_t)local_index);
+   }*/
    tx_thread_sleep(1);
 
    return_motor_cplx_update(&ret,X_RET_OK);
@@ -575,7 +654,6 @@ return_t auto_mode_process(void)
                 if(ptr->panels.index == 0)
                    direction = AUTO_ENRH;
             }
-
 
 
 

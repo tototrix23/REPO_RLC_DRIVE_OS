@@ -424,9 +424,6 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
         {
             if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != motor0.status)
             {
-
-
-
                 motor0.motor_ctrl_instance->p_api->errorCheck(motor0.motor_ctrl_instance->p_ctrl, &motor0.error);
 
                 if(motor0.error != 0x00)
@@ -441,9 +438,7 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
                     LOG_E(LOG_STD,"VADC0 %f", p_instance_ctrl->f_vdc_ad);
 
                 }*/
-
             }
-
         }
         break;
 

@@ -74,13 +74,13 @@ void motor_itoh_brake_init(void)
     ptr->cfg_motorL.pulses_counting_reverse = 0;
     ptr->cfg_motorL.speed_reverse = 1;
 
-    ptr->poster_showtime = 3000;
+    ptr->poster_showtime = 3500;
     ptr->current_stop = 3000;
     //=====================================================================
     // configuration de la taille des bandes mères et de la valeur moyenne
     // d'une affiche (en nombre de points codeurs)
     //=====================================================================
-    ptr->sizes.prime_band_upper_size = 1880;//1890;
+    ptr->sizes.prime_band_upper_size = 1870;//1890;
     ptr->sizes.prime_band_lower_size = 230;//225;
     ptr->sizes.poster_size = 1150;
 
@@ -318,11 +318,26 @@ void motor_itoh_brake_init(void)
     phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
     phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 0;
     phase->params_motors[0].non_regulated.settings.percent = 15;
+    phase->params_motors[0].non_regulated.settings.slope=1;
     phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
     phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 0;
-    phase->params_motors[1].non_regulated.settings.percent = -20;
+    phase->params_motors[1].non_regulated.settings.percent = -30;//-20;
+    phase->params_motors[1].non_regulated.settings.slope=0;
     c_linked_list_append(&ptr->sequences.init.enrl_finish,phase);
+
+    /*C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
+    memset(phase,0x00,sizeof(motor_phase_t));
+    phase->condition_timeout_ms = 0;
+    phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
+    phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 0;
+    phase->params_motors[0].non_regulated.settings.percent = 10;//15;
+    phase->params_motors[0].non_regulated.settings.slope=1;
+    phase->params_motors[1].mode = MOTOR_BRAKE_MODE;
+    phase->params_motors[1].brake.mask=0;
+    c_linked_list_append(&ptr->sequences.init.enrl_finish,phase);*/
 
 
     // ENRL

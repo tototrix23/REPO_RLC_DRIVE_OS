@@ -983,14 +983,14 @@ FSP Configuration
         Hall sensor port U: BSP_IO_PORT_12_PIN_04
         Hall sensor port V: BSP_IO_PORT_12_PIN_05
         Hall sensor port W: BSP_IO_PORT_11_PIN_01
-        General: Timeout counts (msec): 500
+        General: Timeout counts (msec): 800
         General: Maximum voltage (V): 23.0
         General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
         General: Step of speed reference change: 1.0
-        General: Start reference voltage (V): 6.0
+        General: Start reference voltage (V): 10.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
         General: Minimum limit speed (rpm): 150
@@ -1893,14 +1893,14 @@ FSP Configuration
         Hall sensor port U: BSP_IO_PORT_13_PIN_12
         Hall sensor port V: BSP_IO_PORT_13_PIN_13
         Hall sensor port W: BSP_IO_PORT_13_PIN_14
-        General: Timeout counts (msec): 500
+        General: Timeout counts (msec): 800
         General: Maximum voltage (V): 23.0
         General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
         General: Step of speed reference change: 1.0
-        General: Start reference voltage (V): 6.0
+        General: Start reference voltage (V): 10.0
         General: Hall wait counts: 12
         General: Stop judge time: 1000
         General: Minimum limit speed (rpm): 150
