@@ -28,6 +28,8 @@ i_time_t i_time_interface_t;
 void main_thread_entry(void)
 {
     volatile return_t ret = X_RET_OK;
+    R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_LOW );
+
     i_log.write_e = impl_log_write_e;
     i_log.write_d = impl_log_write_d;
     i_log.write_i = impl_log_write_i;
@@ -41,7 +43,8 @@ void main_thread_entry(void)
     tx_thread_resume(&log_thread);
 
 
-
+    //
+    system_init();
 
 
 
@@ -57,13 +60,18 @@ void main_thread_entry(void)
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
     // Initialisation de la partie moteurs (partie API)
-    LOG_I(LOG_STD,"VM ON");
-    R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
+    //LOG_I(LOG_STD,"VM ON");
+    //R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
     delay_ms(1000);
     LOG_I(LOG_STD,"INIT FSP MOTOR");
     motor_init_fsp();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
+
+    LOG_I(LOG_STD,"VM ON");
+    R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
+    delay_ms(1000);
+
 
     // Demarrage de la partie moteur
     tx_thread_resume(&thread_motors);

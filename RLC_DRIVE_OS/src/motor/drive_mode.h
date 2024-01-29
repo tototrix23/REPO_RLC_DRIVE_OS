@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <hal_data.h>
 #include <_core/c_common.h>
-
+#include <system/system.h>
 
 #define CHECK_STOP_REQUEST()              {\
                                           if(drive_stop_request())\
@@ -31,6 +31,11 @@
                                               return_motor_cplx_update(&ret,F_RET_MOTOR_DRIVE_CANCELLED);\
                                               return ret;\
                                              }\
+                                             else if(system_instance.error_hw.overcurrent_hw == TRUE)\
+                                             {\
+                                              return_motor_cplx_update(&ret,F_RET_MOTOR_DRIVE_CANCELLED);\
+                                              return ret;\
+                                             }\
                                           }\
 
 
@@ -40,6 +45,7 @@ typedef enum  e_drive_mode
     MOTOR_MANUAL_MODE  = 1,
     MOTOR_INIT_MODE    = 2,
     MOTOR_AUTO_MODE    = 3,
+    MOTOR_ERROR_MODE   = 4
 } drive_mode_t;
 
 

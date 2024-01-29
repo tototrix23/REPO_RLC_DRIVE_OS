@@ -141,8 +141,8 @@ static void positions_process(void)
         case 4:
             coeff = (float)last_panel_pulses - (float)ptr->sizes.prime_band_upper_size;
             ptr->panels.positions[0] = ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[1] = (int32_t)(coeff * 0.35054f) + ptr->sizes.prime_band_upper_size;
-            ptr->panels.positions[2] = (int32_t)(coeff * 0.68305f) + ptr->sizes.prime_band_upper_size;
+            ptr->panels.positions[1] = (int32_t)(coeff * 0.3479f) + ptr->sizes.prime_band_upper_size;//0.35054f
+            ptr->panels.positions[2] = (int32_t)(coeff * 0.6805f) + ptr->sizes.prime_band_upper_size;//0.68305f
             ptr->panels.positions[3] = last_panel_pulses;
             break;
 
@@ -264,12 +264,12 @@ static return_motor_cplx_t low_band_enrl(void)
        }
 
 
-       h_time_is_elapsed_ms(&ts_error, 250, &ts_elasped);
+       /*h_time_is_elapsed_ms(&ts_error, 250, &ts_elasped);
        if(ts_elasped && error_flag==FALSE)
        {
            error_flag = TRUE;
            motors_instance.motorL->error = 0x10;
-       }
+       }*/
 
        if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
        {
@@ -497,18 +497,6 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        }
        tx_thread_sleep(1);
    }
-
-   /*c_timespan_t final_ts;
-   h_time_get_elapsed(&ts, &final_ts);
-   uint32_t local_index = index;
-   if(direction == AUTO_ENRH)
-   {
-       LOG_I(LOG_STD,"%dms panel %d ENRH",(uint32_t)final_ts.ms,(uint32_t)local_index);
-   }
-   else
-   {
-       LOG_I(LOG_STD,"%dms panel %d ENRL",(uint32_t)final_ts.ms,(uint32_t)local_index);
-   }*/
    tx_thread_sleep(1);
 
    return_motor_cplx_update(&ret,X_RET_OK);

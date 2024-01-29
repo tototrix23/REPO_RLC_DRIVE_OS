@@ -10,10 +10,12 @@
 
 #define MOTORS_ERROR_NONE                             0
 #define MOTORS_ERROR_GENERIC                         -1
-#define MOTORS_ERROR_DAMAGED_PANEL                   -2
-#define MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_L        -3
-#define MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_H        -4
-#define MOTORS_ERROR_TIMEOUT_CHANGING_POSTER         -5
-#define MOTORS_ERROR_OVERCURRENT                     -6
+#define MOTORS_ERROR_OVERCURRENT_HW                  -2
+
+#define MOTORS_ERROR_DAMAGED_PANEL                   -10
+#define MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_L        -11
+#define MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_H        -12
+#define MOTORS_ERROR_TIMEOUT_CHANGING_POSTER         -13
+#define MOTORS_ERROR_OVERCURRENT                     -14
 
 #endif /* MOTOR_MOTORS_ERRORS_H_ */

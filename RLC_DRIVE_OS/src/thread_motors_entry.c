@@ -6,6 +6,7 @@
 #include <motor/motor.h>
 #include <motor/drive_process/drive_process.h>
 #include <motor/drive_process/drive_sequence.h>
+#include <system/system.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -25,7 +26,8 @@ void g_poe_overcurrent(poeg_callback_args_t *p_args)
     {
         R_POEG_Reset(g_poeg0.p_ctrl);
 
-
+        system_instance.error_hw.overcurrent_hw = TRUE;
+        R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_LOW );
     }
 }
 

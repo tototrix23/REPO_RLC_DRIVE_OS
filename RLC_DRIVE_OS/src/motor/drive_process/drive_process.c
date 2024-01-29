@@ -9,6 +9,7 @@
 #include <motor/modes/manual_mode.h>
 #include <motor/modes/init_mode.h>
 #include <motor/modes/auto_mode.h>
+#include <motor/modes/error_mode.h>
 #include <motor/motors_errors.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -38,6 +39,11 @@ return_t drive_process(void)
         case MOTOR_AUTO_MODE:
             auto_mode_process();
             break;
+
+        case MOTOR_ERROR_MODE:
+            error_mode_process();
+            break;
+
         default:
             break;
         }
