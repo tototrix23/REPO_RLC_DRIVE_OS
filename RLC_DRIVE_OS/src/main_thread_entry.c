@@ -57,17 +57,16 @@ void main_thread_entry(void)
         LOG_I(LOG_STD,"INIT ADC SUCCESS");}
 
     // Initialisation de la partie moteurs (partie API)
-    LOG_I(LOG_STD,"VM ON");
+    /*LOG_I(LOG_STD,"VM ON");
     R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
     delay_ms(1000);
     LOG_I(LOG_STD,"INIT FSP MOTOR");
     motor_init_fsp();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
-
+   */
     // Demarrage de la partie moteur
     tx_thread_resume(&thread_motors);
-    LOG_D(LOG_STD,"Start");
 
     c_timespan_t ts;
     h_time_update(&ts);

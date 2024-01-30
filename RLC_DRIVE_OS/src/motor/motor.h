@@ -53,7 +53,7 @@ extern st_drive_t motors_instance;
 
 
 void motor_structures_init(void);
-
+void motor_deinit_fsp(void);
 void motor_init_fsp(void);
 
 return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res);

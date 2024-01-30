@@ -182,6 +182,20 @@ void motor_structures_init(void)
     motors_instance.mode = MOTOR_UNKNOWN_MODE;
 }
 
+void motor_deinit_fsp(void)
+{
+    motor_120_degree_instance_ctrl_t * p_instance_ctrl;
+    p_instance_ctrl = (motor_120_degree_instance_ctrl_t*)g_mot_120_degree0.p_ctrl;
+    if(p_instance_ctrl->open != 0x0)
+       g_mot_120_degree0.p_api->close(g_mot_120_degree0.p_ctrl);
+    p_instance_ctrl = (motor_120_degree_instance_ctrl_t*)g_mot_120_degree1.p_ctrl;
+    if(p_instance_ctrl->open != 0x0)
+       g_mot_120_degree1.p_api->close(g_mot_120_degree1.p_ctrl);
+
+
+    R_GPT_THREE_PHASE_Stop(g_three_phase0.p_ctrl);
+    R_GPT_THREE_PHASE_Stop(g_three_phase1.p_ctrl);
+}
 
 void motor_init_fsp(void)
 {
