@@ -15,6 +15,7 @@
 #include <motor/drive_mode.h>
 #include <motor/drive_process/drive_process.h>
 #include <motor/drive_process/drive_sequence.h>
+#include <motor/check/motor_check.h>
 #include <remotectrl/remotectrl.h>
 #include <adc/adc.h>
 #undef  LOG_LEVEL
@@ -43,6 +44,24 @@ void manual_mode_process(void) {
     if(m12_enrl) remote = remote | 0x02;
     if(m12_derh) remote = remote | 0x04;
 
+
+    // Routine pour vérifier la présence de défaut éléctrique sur la partie moteur.
+    // Si une erreur éléctrique est présente alors le mode manuel est inactif.
+    return_t ret = motor_check();
+    while(ret != X_RET_OK)
+    {
+        LOG_E(LOG_STD,"Error motor check");
+        if(drive_stop_request() == TRUE) return;
+        h_time_is_elapsed_ms(&ts, 3000, &ts_elasped);
+        if(ts_elasped)
+        {
+            h_time_update(&ts);
+            ret = motor_check();
+        }
+        tx_thread_sleep(1);
+    }
+
+
     bool_t end = FALSE;
     motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     current_list = &ptr->sequences.off_no_brake;
@@ -59,16 +78,8 @@ void manual_mode_process(void) {
         {
             h_time_update(&ts);
 
-            /*int32_t pulsesH;
-            int32_t pulsesL;
-            motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
-            motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
 
-
-            LOG_D(LOG_STD,"pulsesH: %d  dirH: %d  pulsesL: %d dirL: %d",pulsesH,motors_instance.motorH->hall_vars->real_direction,pulsesL,motors_instance.motorL->hall_vars->real_direction);*/
-            //LOG_D(LOG_STD,"MotH IU:%f IW:%f   MotL IU:%f IW:%f   IIN:%f",adc_inst.motorH.iu_ad,adc_inst.motorH.iw_ad,adc_inst.motorL.iu_ad,adc_inst.motorL.iw_ad,adc_inst.average.iin);
-
-            float ic = (-adc_inst.motorH.iu_ad-adc_inst.motorH.iw_ad);
+            /*float ic = (-adc_inst.motorH.iu_ad-adc_inst.motorH.iw_ad);
             float diffH = (adc_inst.motorH.iu_ad-ic);
             diffH = diffH * 0.577350269f;
 
@@ -76,7 +87,7 @@ void manual_mode_process(void) {
             float diffL = (adc_inst.motorL.iu_ad-ic);
             diffL = diffL * 0.577350269f;
 
-            LOG_D(LOG_STD,"%f %f - IIN:%d",diffH,diffL,adc_inst.average.iin);
+            LOG_D(LOG_STD,"%f %f - IIN:%d",diffH,diffL,adc_inst.average.iin);*/
 
         }
 

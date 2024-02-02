@@ -149,6 +149,13 @@ typedef struct st_motor_profil_t
             c_linked_list_t poster_init_enrh_slow;
             c_linked_list_t poster_init_enrh;
         }automatic;
+
+        struct{
+            c_linked_list_t test1H;
+            c_linked_list_t test1L;
+            c_linked_list_t test2;
+        }error_check;
+
     }sequences;
 
     struct

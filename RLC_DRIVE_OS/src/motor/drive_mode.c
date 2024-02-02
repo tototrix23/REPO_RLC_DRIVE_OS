@@ -28,6 +28,15 @@ bool_t drive_stop_request(void)
        drive_control.running = FALSE;
        return TRUE;
    }
+   else if(flag_overcurrent_vm==TRUE)
+   {
+       motor_profil_t *ptr = &motors_instance.profil;
+       sequence_result_t sequence_result;
+       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+       drive_control.running = FALSE;
+       set_drive_mode(MOTOR_ERROR_MODE);
+       return TRUE;
+   }
    else
    {
        return FALSE;
@@ -44,6 +53,27 @@ return_t set_drive_mode(drive_mode_t mode)
 
         switch(mode)
         {
+            case MOTOR_ERROR_MODE:
+                switch(current_mode)
+                {
+                    case MOTOR_MANUAL_MODE:
+                        change_order = TRUE;
+                        break;
+
+                    case MOTOR_INIT_MODE:
+                        change_order = TRUE;
+                        break;
+
+                    case MOTOR_AUTO_MODE:
+                        change_order = TRUE;
+                        break;
+
+                    case MOTOR_ERROR_MODE:
+                        break;
+                }
+                break;
+
+
             case MOTOR_MANUAL_MODE:
                 switch(current_mode)
                 {
@@ -55,6 +85,10 @@ return_t set_drive_mode(drive_mode_t mode)
                         break;
 
                     case MOTOR_AUTO_MODE:
+                        change_order = TRUE;
+                        break;
+
+                    case MOTOR_ERROR_MODE:
                         change_order = TRUE;
                         break;
                 }
@@ -72,6 +106,9 @@ return_t set_drive_mode(drive_mode_t mode)
 
                     case MOTOR_AUTO_MODE:
                         break;
+
+                    case MOTOR_ERROR_MODE:
+                        break;
                 }
                 break;
 
@@ -85,6 +122,9 @@ return_t set_drive_mode(drive_mode_t mode)
                         break;
 
                     case MOTOR_AUTO_MODE:
+                        break;
+
+                    case MOTOR_ERROR_MODE:
                         break;
                 }
                 break;
@@ -105,9 +145,7 @@ return_t set_drive_mode(drive_mode_t mode)
 
         switch (mode)
         {
-            case MOTOR_UNKNOWN_MODE:
-                LOG_D(LOG_STD,"Set unknown mode");
-            break;
+
 
             case MOTOR_MANUAL_MODE:
                 LOG_D(LOG_STD,"Set manual mode");
@@ -120,6 +158,10 @@ return_t set_drive_mode(drive_mode_t mode)
 
             case MOTOR_AUTO_MODE:
                 LOG_D(LOG_STD,"Set auto mode");
+            break;
+
+            case MOTOR_ERROR_MODE:
+                LOG_E(LOG_STD,"Set error mode");
             break;
         }
 

@@ -13,6 +13,7 @@
 #include <motor/drive_process/drive_process.h>
 #include <motor/drive_process/drive_sequence.h>
 #include <motor/motors_errors.h>
+#include <motor/check/motor_check.h>
 #include <adc/adc.h>
 #include <return_codes.h>
 
@@ -48,6 +49,17 @@ return_t init_mode_process(void) {
 
 
     //----------------------------------------------------------------------------------------------
+    // Check de la partie moteur
+    //----------------------------------------------------------------------------------------------
+    ret = motor_check();
+    if(ret != X_RET_OK)
+    {
+        drive_control.running=FALSE;
+        set_drive_mode(MOTOR_ERROR_MODE);
+        return X_RET_OK;
+    }
+
+    //----------------------------------------------------------------------------------------------
     // Arrêt des moteurs
     //----------------------------------------------------------------------------------------------
     motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
@@ -70,14 +82,20 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
     ret = init_strectch();
     CHECK_STOP_REQUEST();
+    if(ret != X_RET_OK)
+        MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_INIT_MODE,ret);
     //----------------------------------------------------------------------------------------------
     // Recherche bande mère haute
     //----------------------------------------------------------------------------------------------
     ret = init_enrl();
     CHECK_STOP_REQUEST();
+    if(ret != X_RET_OK)
+        MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_INIT_MODE,ret);
     init_finish();
     delay_ms(1000);
     CHECK_STOP_REQUEST();
+    if(ret != X_RET_OK)
+        MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_INIT_MODE,ret);
     drive_control.running=FALSE;
     ptr->panels.index = 0;
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
@@ -106,6 +124,17 @@ static return_t init_strectch(void)
     motor_phase_t *phase = 0x00;
     c_linked_list_get_by_index(&motors_instance.profil.sequences.init.stretch1,1,(void**)&phase);
     motor_drive_sequence(&ptr->sequences.init.stretch1,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+
+
+    end = FALSE;
+    while(!end)
+    {
+        CHECK_STOP_REQUEST_NESTED();
+        h_time_is_elapsed_ms(&ts, 500, &ts_elasped);
+        if(ts_elasped == TRUE)
+            end = TRUE;
+    }
+    end = FALSE;
 
     c_linked_list_get_by_index(&motors_instance.profil.sequences.init.stretch2,1,(void**)&phase);
     motor_ext_settings_t motorH_stretch_settings;
@@ -236,6 +265,7 @@ static return_t init_enrl(void)
     int32_t pulsesH1;
     int32_t pulsesH2;
 
+    //flag_overcurrent_vm = TRUE;
 
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
     motor_drive_sequence(&ptr->sequences.init.enrl_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);

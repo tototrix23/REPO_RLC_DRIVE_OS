@@ -179,7 +179,7 @@ void motor_structures_init(void)
     motors_instance.motorL = &motor1;
     motors_instance.motors[0] =  motors_instance.motorH;
     motors_instance.motors[1] =  motors_instance.motorL;
-    motors_instance.mode = MOTOR_UNKNOWN_MODE;
+    motors_instance.mode = MOTOR_MANUAL_MODE;
 }
 
 void motor_deinit_fsp(void)
@@ -421,6 +421,12 @@ static void gpt_periodset (timer_ctrl_t * const p_ctrl, uint32_t const period_co
     p_instance_ctrl->p_reg->GTPR = (uint32_t)(value);
 }
 
+void return_motor_cplx_update(return_motor_cplx_t *ptr,return_t code)
+{
+    ptr->code = code;
+    ptr->fsp_motorH_error_code = motors_instance.motorH->error;
+    ptr->fsp_motorL_error_code = motors_instance.motorL->error;
+}
 
 
 void mtr0_callback_120_degree(motor_callback_args_t * p_args)

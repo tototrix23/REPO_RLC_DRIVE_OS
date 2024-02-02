@@ -58,7 +58,6 @@ void thread_motors_entry(void)
     ret = motor_check();
     c_timespan_t ts2;
     h_time_get_elapsed(&ts1, &ts2);
-    LOG_I(LOG_STD,"Motor check 0x%X  (%d ms)",system_inst.motor.error_hw.value,(uint16_t)ts2.ms);
 
 
 

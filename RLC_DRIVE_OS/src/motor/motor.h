@@ -49,6 +49,13 @@ typedef struct st_drive_t
     motor_profil_t profil;
 }st_drive_t;
 
+typedef struct st_return_motor_cplx_t
+{
+    return_t code;
+    uint32_t fsp_motorH_error_code;
+    uint32_t fsp_motorL_error_code;
+}return_motor_cplx_t;
+
 extern st_drive_t motors_instance;
 
 
@@ -61,7 +68,7 @@ return_t motor_wait_stop(st_motor_t *mot);
 void motor_log_speed(st_motor_t *mot);
 
 void motor_log_api(void);
-
+void return_motor_cplx_update(return_motor_cplx_t *ptr,return_t code);
 
 
 #endif /* APPLICATION_MOTOR_MOTOR_H_ */

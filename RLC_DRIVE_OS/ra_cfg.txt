@@ -2833,3 +2833,8 @@ FSP Configuration
     Message Size (Words): 1
     Queue Size (Bytes): 320
     
+  Object "g_mutex_system Mutex"
+    Name: New Mutex
+    Symbol: g_mutex_system
+    Priority inheritance: Enabled
+    

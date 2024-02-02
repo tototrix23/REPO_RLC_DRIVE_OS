@@ -257,7 +257,7 @@ void motor_itoh_brake_init(void)
     memset(phase,0x00,sizeof(motor_phase_t));
     phase->condition_timeout_ms = 0;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
-    phase->post_tempo_ms = 500;
+    phase->post_tempo_ms = 0;//500;
     phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
     phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 0;
@@ -274,7 +274,7 @@ void motor_itoh_brake_init(void)
     C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
     memset(phase,0x00,sizeof(motor_phase_t));
     phase->condition_timeout_ms = 0;
-    phase->post_tempo_ms = 1500;
+    phase->post_tempo_ms = 0;//1500;
     phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
     phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
     phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
@@ -533,5 +533,54 @@ void motor_itoh_brake_init(void)
     phase->params_motors[1].non_regulated.settings.percent = -30;//-30;
     phase->params_motors[1].non_regulated.settings.slope=0;
     c_linked_list_append(&ptr->sequences.automatic.lower_band_enrl,phase);
+
+
+    //=====================================================================
+    // initialisation des paramètres du mode ERREUR
+    //=====================================================================
+    c_linked_list_init(&ptr->sequences.error_check.test1H);
+    c_linked_list_init(&ptr->sequences.error_check.test1L);
+    c_linked_list_init(&ptr->sequences.error_check.test2);
+
+
+    // TEST1H
+    c_linked_list_append(&ptr->sequences.error_check.test1H,phase_off_no_brake);
+    C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
+    memset(phase,0x00,sizeof(motor_phase_t));
+    phase->condition_timeout_ms = 0;
+    phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
+    phase->post_tempo_ms = 0;//500;
+    phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 250;
+    phase->params_motors[0].non_regulated.settings.percent = -25;
+    phase->params_motors[0].non_regulated.settings.slope=0;
+    phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 0;
+    phase->params_motors[1].non_regulated.settings.percent = 0;
+    phase->params_motors[1].non_regulated.settings.slope=0;
+    c_linked_list_append(&ptr->sequences.error_check.test1H,phase);
+
+    // TEST2L
+    c_linked_list_append(&ptr->sequences.error_check.test1L,phase_off_no_brake);
+    C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
+    memset(phase,0x00,sizeof(motor_phase_t));
+    phase->condition_timeout_ms = 0;
+    phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
+    phase->post_tempo_ms = 0;//500;
+    phase->params_motors[0].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[0].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[0].non_regulated.settings.timeout_hall_ms = 0;
+    phase->params_motors[0].non_regulated.settings.percent = 0;
+    phase->params_motors[0].non_regulated.settings.slope=0;
+    phase->params_motors[1].mode = MOTOR_NON_REGULATED_MODE;
+    phase->params_motors[1].non_regulated.settings.current_max = 0.0f;
+    phase->params_motors[1].non_regulated.settings.timeout_hall_ms = 0;
+    phase->params_motors[1].non_regulated.settings.percent = 25;
+    phase->params_motors[1].non_regulated.settings.slope=0;
+    c_linked_list_append(&ptr->sequences.error_check.test1L,phase);
+
+
 
 }

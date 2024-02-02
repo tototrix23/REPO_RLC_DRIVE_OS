@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <hal_data.h>
 #include <_core/c_common.h>
+#include <system/system.h>
+#include <return_codes.h>
 
 
 #define CHECK_STOP_REQUEST()              {\
@@ -22,11 +24,11 @@
                                           }\
 
 #define CHECK_STOP_REQUEST_NESTED()       {\
-                                          if(drive_control.stop_order == TRUE) return F_RET_MOTOR_DRIVE_CANCELLED;\
+                                             if(drive_control.stop_order == TRUE || flag_overcurrent_vm == TRUE) return F_RET_MOTOR_DRIVE_CANCELLED;\
                                           }\
 
 #define CHECK_STOP_REQUEST_NESTED_CPLX()  {\
-                                          if(drive_control.stop_order == TRUE) \
+                                          if(drive_control.stop_order == TRUE || flag_overcurrent_vm == TRUE) \
                                              {\
                                               return_motor_cplx_update(&ret,F_RET_MOTOR_DRIVE_CANCELLED);\
                                               return ret;\
@@ -34,12 +36,20 @@
                                           }\
 
 
+#define MOTOR_SET_ERROR_EVENT_AND_RETURN(mode,event) {\
+                                                        drive_control.running = FALSE;\
+                                                        set_drive_mode(MOTOR_ERROR_MODE);\
+                                                        return event;\
+                                                     }\
+
+
+
 typedef enum  e_drive_mode
 {
-    MOTOR_UNKNOWN_MODE = 0,
     MOTOR_MANUAL_MODE  = 1,
     MOTOR_INIT_MODE    = 2,
     MOTOR_AUTO_MODE    = 3,
+    MOTOR_ERROR_MODE   = 4,
 } drive_mode_t;
 
 

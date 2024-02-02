@@ -17,6 +17,8 @@ return_t motor_check(void)
 {
     return_t ret = X_RET_OK;
 
+    st_system_motor_t sys_mot;
+    memset(&sys_mot,0x00,sizeof(st_system_motor_t));
 
 
     // Desactivation de la tension moteur
@@ -31,10 +33,11 @@ return_t motor_check(void)
     if(flag_overcurrent_vm == TRUE)
     {
         R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_LOW );
-        system_inst.motor.error_hw.bits.overcurrent_vm = TRUE;
+        sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
+        system_set_motor(sys_mot);
         return F_RET_MOTOR_CHECK_ERROR;
     }
-    else system_inst.motor.error_hw.bits.overcurrent_vm = FALSE;
+    else sys_mot.error_lvl1.bits.overcurrent_vm = FALSE;
 
     // Ouverture du FSP
     motor_init_fsp();
@@ -43,30 +46,33 @@ return_t motor_check(void)
     delay_ms(50);
     // Vérification des alimentations des codeurs
     if(adc_inst.instantaneous.vhall1 < 11000 || adc_inst.instantaneous.vhall1 > 13000)
-        system_inst.motor.error_hw.bits.vcc_hall_h = TRUE;
+        sys_mot.error_lvl1.bits.vcc_hall_h = TRUE;
     else
-        system_inst.motor.error_hw.bits.vcc_hall_h = FALSE;
+        sys_mot.error_lvl1.bits.vcc_hall_h = FALSE;
 
     if(adc_inst.instantaneous.vhall2 < 11000 || adc_inst.instantaneous.vhall1 > 13000)
-        system_inst.motor.error_hw.bits.vcc_hall_l = TRUE;
+        sys_mot.error_lvl1.bits.vcc_hall_l = TRUE;
     else
-        system_inst.motor.error_hw.bits.vcc_hall_l = FALSE;
+        sys_mot.error_lvl1.bits.vcc_hall_l = FALSE;
 
 
     // Configuration du drivers haut
     ret = motor_config_spi_init();
     ret = motor_config_spi(&drv_mot1);
     if(ret != X_RET_OK)
-        system_inst.motor.error_hw.bits.config_driver_h = TRUE;
+        sys_mot.error_lvl1.bits.config_driver_h = TRUE;
 
 
     // Configuration du drivers bas
     ret = motor_config_spi(&drv_mot2);
     if(ret != X_RET_OK)
-        system_inst.motor.error_hw.bits.config_driver_l = TRUE;
+        sys_mot.error_lvl1.bits.config_driver_l = TRUE;
 
 
-    if(system_inst.motor.error_hw.value != 0x0)
+    system_set_motor(sys_mot);
+
+
+    if(sys_mot.error_lvl1.value != 0x0)
         return F_RET_MOTOR_CHECK_ERROR;
 
 

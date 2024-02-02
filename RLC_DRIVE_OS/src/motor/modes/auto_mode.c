@@ -28,18 +28,10 @@
 #define AUTO_ENRL     1
 
 
-typedef struct st_return_motor_cplx_t
-{
-    return_t code;
-    uint32_t fsp_motorH_error_code;
-    uint32_t fsp_motorL_error_code;
-}return_motor_cplx_t;
+
 
 
 static bool_t init_phase = TRUE;
-
-
-static void return_motor_cplx_update(return_motor_cplx_t *ptr,return_t code);
 static void scroll_stop(void);
 static void positions_process(void);
 static void poster_comp(uint8_t direction,uint8_t index);
@@ -95,12 +87,7 @@ static void poster_comp(uint8_t direction,uint8_t index)
 }
 
 
-static void return_motor_cplx_update(return_motor_cplx_t *ptr,return_t code)
-{
-    ptr->code = code;
-    ptr->fsp_motorH_error_code = motors_instance.motorH->error;
-    ptr->fsp_motorL_error_code = motors_instance.motorL->error;
-}
+
 
 
 static void positions_process(void)
@@ -168,7 +155,6 @@ static void positions_process(void)
 
     ptr->panels.index = ptr->panels.count-1;
 
-    volatile uint8_t end=1;
 }
 
 static return_motor_cplx_t low_band_enrh(void)
@@ -275,7 +261,7 @@ static return_motor_cplx_t low_band_enrl(void)
        {
           scroll_stop();
           error_count++;
-          if(error_count >= 2)
+          if(error_count >= 4)
           {
               end = TRUE;
               return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
@@ -306,7 +292,6 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    return_motor_cplx_update(&ret,X_RET_OK);
 
    c_timespan_t ts_error;
-   bool_t error_flag = FALSE;
    uint8_t error_count=0;
 
    motor_profil_t *ptr = &motors_instance.profil;
@@ -320,6 +305,8 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    int32_t pulsesH;
    int32_t pulsesH1;
    int32_t pulsesH2;
+   int32_t pulsesL1;
+   int32_t pulsesL2;
    bool_t init_speed_finished;
    poster_change_start:
    h_time_update(&ts_error);
@@ -327,8 +314,8 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    init_speed_finished = FALSE;
    h_time_update(&ts);
 
-   motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH_start);
-
+   motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH_start);
+   motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL1);
    pulsesH1 = pulsesH_start;
    if(direction == AUTO_ENRH)
    {
@@ -482,11 +469,13 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        else
            h_time_is_elapsed_ms(&ts2, 400, &ts2_elasped);
 
-       if(ts2_elasped == TRUE && init_phase == TRUE)
+       if(ts2_elasped == TRUE /*&& init_phase == TRUE*/)
        {
            h_time_update(&ts2);
            motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH2);
-           if(abs(pulsesH2 - pulsesH1) <= 3)
+           motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL2);
+
+           if( (abs(pulsesH2 - pulsesH1) <= 3) || (abs(pulsesL2 - pulsesL1) <= 3))
            {
                scroll_stop();
                LOG_W(LOG_STD,"no pulses");
@@ -494,7 +483,14 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
                return ret;
            }
            pulsesH1 = pulsesH2;
+           pulsesL1 = pulsesL2;
        }
+       /*else if(ts2_elasped == TRUE && init_phase == FALSE)
+       {
+           h_time_update(&ts2);
+           motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL2);
+
+       }*/
        tx_thread_sleep(1);
    }
 
@@ -526,7 +522,6 @@ return_t auto_mode_process(void)
 
     return_t ret = X_RET_OK;
     motor_profil_t *ptr = &motors_instance.profil;
-    sequence_result_t sequence_result;
     volatile uint8_t direction;
     volatile return_motor_cplx_t ret_cplx;
     c_timespan_t ts;
@@ -562,7 +557,7 @@ return_t auto_mode_process(void)
             }
             else if(ret_cplx.code == F_RET_MOTOR_ERROR_API_FSP)
             {
-               if(ret_cplx.fsp_motorH_error_code == MOTOR_ERROR_BEMF_PATTERN || ret_cplx.fsp_motorH_error_code == MOTOR_ERROR_BEMF_TIMEOUT)
+               if(/*ret_cplx.fsp_motorH_error_code == MOTOR_ERROR_BEMF_PATTERN ||*/ ret_cplx.fsp_motorH_error_code == MOTOR_ERROR_BEMF_TIMEOUT)
                {
                    LOG_I(LOG_STD,"%d panels detected",count);
                    end = TRUE;
@@ -571,12 +566,14 @@ return_t auto_mode_process(void)
                {
                    LOG_E(LOG_STD,"Error %d",ret_cplx.code);
                    end = TRUE;
+                   MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
                }
             }
             else
             {
                 LOG_E(LOG_STD,"Error %d",ret_cplx.code);
                 end = TRUE;
+                MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
             }
         }
         else
@@ -601,6 +598,7 @@ return_t auto_mode_process(void)
     if(ret_cplx.code != X_RET_OK)
     {
         LOG_E(LOG_STD,"Error %d",ret_cplx.code);
+        MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
     }
 
     // Lecture du compteur de points du moteur haut. Le nombre de points correspond au total de tout le train d'affiches.
@@ -613,6 +611,7 @@ return_t auto_mode_process(void)
     if(ret_cplx.code != X_RET_OK)
     {
         LOG_E(LOG_STD,"Error %d",ret_cplx.code);
+        MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
     }
 
     // On indique à la fonction 'poster_change_to_position' que le moteur haut peut maintenant être piloter en mode normal.
@@ -633,6 +632,8 @@ return_t auto_mode_process(void)
             {
                 ret_cplx = poster_change_to_position(AUTO_ENRH,ptr->panels.index+1);
                 CHECK_STOP_REQUEST();
+                if(ret_cplx.code != X_RET_OK)
+                    MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
 
 
                 delay_ms(500);
@@ -646,6 +647,8 @@ return_t auto_mode_process(void)
             {
                 ret_cplx = poster_change_to_position(AUTO_ENRL,ptr->panels.index-1);
                 CHECK_STOP_REQUEST();
+                if(ret_cplx.code != X_RET_OK)
+                    MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
 
                 delay_ms(500);
                 poster_comp(AUTO_ENRL,ptr->panels.index-1);
