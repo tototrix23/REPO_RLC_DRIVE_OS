@@ -25,6 +25,7 @@
 
 static return_motor_cplx_t error_test_1H(void);
 static return_motor_cplx_t error_test_1L(void);
+static return_motor_cplx_t error_test_2(void);
 static void scroll_stop(void);
 
 static void scroll_stop(void)
@@ -149,6 +150,84 @@ static return_motor_cplx_t error_test_1L(void)
     return ret;
 }
 
+static return_motor_cplx_t error_test_2(void)
+{
+    return_motor_cplx_t ret;
+    return_motor_cplx_update(&ret,X_RET_OK);
+
+    motor_profil_t *ptr = &motors_instance.profil;
+    sequence_result_t sequence_result;
+    c_timespan_t ts;
+    bool_t end = FALSE;
+    uint8_t index = 0;
+    const uint8_t stat_running = 1;
+    const uint8_t stat_stoppped = 2;
+    uint32_t error_fsp_counter[2] = {0,0};
+    uint16_t error_fsp[2] = {0,0};
+    uint8_t status[2];
+    uint8_t sm_state[2] = {0,0};
+    status[0] = stat_running;
+    status[1] = stat_running;
+
+    error_test_2_start:
+    h_time_update(&ts);
+
+    do
+    {
+        CHECK_STOP_REQUEST_NESTED_CPLX();
+
+        for(index=0;index<2;index++)
+        {
+            st_motor_t mot = motors_instance.motors[index];
+
+            switch(sm_state[index])
+            {
+                case 0:
+
+                    if(mot->error != 0x00 )
+                    {
+                        error_fsp_counter[index]++;
+                        if(error_fsp_counter[index] >= 4)
+                        {
+                           end = TRUE;
+                           return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
+                           LOG_E(LOG_STD,"Error FSP 0x%02x",motors_instance.motorL->error);
+                           scroll_stop();
+                           return ret;
+                        }
+                        else
+                        {
+                           LOG_W(LOG_STD,"Error FSP 0x%02x",motors_instance.motorL->error);
+                           scroll_stop();
+                           motors_instance.motorL->error = 0;
+                           delay_ms(100);
+                           goto error_test_2_start;
+                        }
+                    }
+
+                    break;
+
+                case 1:
+                    break;
+            }
+
+        }
+
+
+        bool_t ts_elasped;
+        h_time_is_elapsed_ms(&ts, 30000, &ts_elasped);
+        if(ts_elasped == TRUE)
+            end = TRUE;
+
+    }while(!end);
+
+
+
+
+
+
+}
+
 return_t error_mode_process(void)
 {
     drive_control.running = TRUE;
@@ -230,14 +309,14 @@ return_t error_mode_process(void)
        sys_mot.error_lvl2.value == 0x00 &&
        sys_mot.error_lvl3.value == 0x00)
     {
-        LOG_W(LOG_STD,"No error detected -> starting init mode")
+        LOG_W(LOG_STD,"No error detected -> starting init mode");
         drive_control.running = FALSE;
         set_drive_mode(MOTOR_INIT_MODE);
         return X_RET_OK;
     }
     else
     {
-        LOG_E(LOG_STD,"Error detected")
+        LOG_E(LOG_STD,"Error detected");
         do
         {
             CHECK_STOP_REQUEST();

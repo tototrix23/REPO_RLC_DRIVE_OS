@@ -55,22 +55,18 @@ return_t motor_check(void)
     else
         sys_mot.error_lvl1.bits.vcc_hall_l = FALSE;
 
-
     // Configuration du drivers haut
     ret = motor_config_spi_init();
     ret = motor_config_spi(&drv_mot1);
     if(ret != X_RET_OK)
         sys_mot.error_lvl1.bits.config_driver_h = TRUE;
 
-
     // Configuration du drivers bas
     ret = motor_config_spi(&drv_mot2);
     if(ret != X_RET_OK)
         sys_mot.error_lvl1.bits.config_driver_l = TRUE;
 
-
     system_set_motor(sys_mot);
-
 
     if(sys_mot.error_lvl1.value != 0x0)
         return F_RET_MOTOR_CHECK_ERROR;

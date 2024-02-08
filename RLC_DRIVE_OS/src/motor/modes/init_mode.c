@@ -120,11 +120,9 @@ static return_t init_strectch(void)
     bool_t ts_elasped;
     h_time_update(&ts);
 
-
     motor_phase_t *phase = 0x00;
     c_linked_list_get_by_index(&motors_instance.profil.sequences.init.stretch1,1,(void**)&phase);
     motor_drive_sequence(&ptr->sequences.init.stretch1,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-
 
     end = FALSE;
     while(!end)

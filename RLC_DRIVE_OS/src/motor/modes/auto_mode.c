@@ -340,9 +340,9 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        // Gestion d'un timeout sur le changement d'affiche
        uint32_t timeout_error;
        if(init_phase == TRUE)
-           timeout_error = 5000;
+           timeout_error = 6000;
        else
-           timeout_error = 3500;
+           timeout_error = 4000;
 
        h_time_is_elapsed_ms(&ts, timeout_error, &ts_elasped);
        if(ts_elasped == TRUE)
