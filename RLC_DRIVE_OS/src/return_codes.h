@@ -8,7 +8,7 @@
 #ifndef RETURN_CODES_H_
 #define RETURN_CODES_H_
 
-
+#define F_RET_OK                                  0
 #define F_RET_ERROR_GENERIC                  -10000
 
 #define F_RET_MOTOR_STOP_FLAG_TIMEOUT        -10100
@@ -36,5 +36,7 @@
 #define F_RET_MOTOR_AUTO_TIMEOUT_POSTER      -10500
 #define F_RET_MOTOR_AUTO_OVERCURRENT         -10501
 #define F_RET_MOTOR_AUTO_TIMEOUT_PULSES      -10502
+#define F_RET_PANELS_DAMAGED                 -10503
+
 
 #endif /* RETURN_CODES_H_ */

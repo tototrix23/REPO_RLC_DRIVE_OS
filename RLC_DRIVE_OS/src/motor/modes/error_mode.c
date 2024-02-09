@@ -103,7 +103,7 @@ static return_motor_cplx_t error_test_1L(void)
     sequence_result_t sequence_result;
     c_timespan_t ts;
     uint32_t error_fsp_counter = 0;
-    error_test_1_start:
+    error_test_1L_start:
     h_time_update(&ts);
 
 
@@ -136,7 +136,7 @@ static return_motor_cplx_t error_test_1L(void)
                scroll_stop();
                motors_instance.motorL->error = 0;
                delay_ms(100);
-               goto error_test_1_start;
+               goto error_test_1L_start;
             }
         }
     }
@@ -158,74 +158,138 @@ static return_motor_cplx_t error_test_2(void)
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
     c_timespan_t ts;
-    bool_t end = FALSE;
-    uint8_t index = 0;
-    const uint8_t stat_running = 1;
-    const uint8_t stat_stoppped = 2;
-    uint32_t error_fsp_counter[2] = {0,0};
-    uint16_t error_fsp[2] = {0,0};
-    uint8_t status[2];
-    uint8_t sm_state[2] = {0,0};
-    status[0] = stat_running;
-    status[1] = stat_running;
+    c_timespan_t ts_pulses[2];
+    volatile uint8_t index = 0;
+    const uint8_t stat_process = 1;
+    const uint8_t stat_finished = 2;
+    volatile uint32_t error_fsp_counter[2] = {0,0};
+    volatile uint16_t error_fsp[2] = {0,0};
+    volatile uint8_t status[2];
+    volatile int32_t pulses1[2];
+    volatile int32_t pulses2[2];
+    status[0] = stat_process;
+    status[1] = stat_process;
 
-    error_test_2_start:
     h_time_update(&ts);
+    h_time_update(&ts_pulses[0]);
+    h_time_update(&ts_pulses[1]);
 
-    do
+
+    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
+    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
+    pulses1[0]=0;
+    pulses1[1]=0;
+    pulses2[0]=0;
+    pulses2[1]=0;
+
+    LOG_D(LOG_STD,"br");
+    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    delay_ms(500);
+    //motors_instance.motorH->error=0x00;
+    //motors_instance.motorL->error=0x00;
+    LOG_D(LOG_STD,"test2");
+    motor_drive_sequence(&ptr->sequences.error_check.test2,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+
+    while(1)
     {
         CHECK_STOP_REQUEST_NESTED_CPLX();
 
         for(index=0;index<2;index++)
         {
-            st_motor_t mot = motors_instance.motors[index];
+            st_motor_t *mot = motors_instance.motors[index];
 
-            switch(sm_state[index])
+            // Si le traitement est en cours
+            if(status[index] == stat_process)
             {
-                case 0:
-
-                    if(mot->error != 0x00 )
+                // Gestion des erreurs de FSP
+                if(mot->error != 0x00 )
+                {
+                    error_fsp_counter[index]++;
+                    if(error_fsp_counter[index] >= 4)
                     {
-                        error_fsp_counter[index]++;
-                        if(error_fsp_counter[index] >= 4)
-                        {
-                           end = TRUE;
-                           return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
-                           LOG_E(LOG_STD,"Error FSP 0x%02x",motors_instance.motorL->error);
-                           scroll_stop();
-                           return ret;
-                        }
-                        else
-                        {
-                           LOG_W(LOG_STD,"Error FSP 0x%02x",motors_instance.motorL->error);
-                           scroll_stop();
-                           motors_instance.motorL->error = 0;
-                           delay_ms(100);
-                           goto error_test_2_start;
-                        }
+                       status[index] = stat_finished;
+                       error_fsp[index] = mot->error;
+                       LOG_E(LOG_STD,"Error FSP 0x%02x",mot->error);
                     }
+                    else
+                    {
+                       LOG_W(LOG_STD,"Error FSP 0x%02x",mot->error);
+                       mot->error = 0;
+                       LOG_D(LOG_STD,"1");
+                       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                       LOG_D(LOG_STD,"11-%d",sequence_result.status);
+                       LOG_D(LOG_STD,"12-%d",sequence_result.errorH);
+                       LOG_D(LOG_STD,"13-%d",sequence_result.errorL);
+                       delay_ms(100);
+                       h_time_update(&ts_pulses[0]);
+                       h_time_update(&ts_pulses[1]);
+                       LOG_D(LOG_STD,"2");
+                       motor_drive_sequence(&ptr->sequences.error_check.test2,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                       //goto error_test_2_start;
+                    }
+                }
 
-                    break;
+                // Gestion de la comparaison sur les points
+                bool_t ts_pulses_elasped = FALSE;
+                h_time_is_elapsed_ms(&ts_pulses[index], 1000, &ts_pulses_elasped);
+                if(ts_pulses_elasped == TRUE)
+                {
+                    h_time_update(&ts_pulses[index]);
+                    mot->motor_ctrl_instance->p_api->pulsesGet(mot->motor_ctrl_instance->p_ctrl,&pulses2[index]);
+                    if(abs(pulses2[index] - pulses1[index]) < 5)
+                    {
+                        LOG_D(LOG_STD,"Motor %d no more pulses",index);
+                        status[index] = stat_finished;
+                    }
+                    pulses1[index] = pulses2[index];
+                }
 
-                case 1:
-                    break;
+                //
+
             }
-
         }
 
+        if(status[0] != stat_finished && motors_instance.motorH->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
+        {
+            LOG_D(LOG_STD,"MotorH reverse detected");
+            status[0] = stat_finished;
+        }
+
+        if(status[1] != stat_finished && motors_instance.motorL->hall_vars->real_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
+        {
+            LOG_D(LOG_STD,"MotorL reverse detected");
+            status[1] = stat_finished;
+        }
 
         bool_t ts_elasped;
         h_time_is_elapsed_ms(&ts, 30000, &ts_elasped);
         if(ts_elasped == TRUE)
-            end = TRUE;
+        {
+            scroll_stop();
+            LOG_E(LOG_STD,"Panel damaged");
+            return_motor_cplx_update(&ret,F_RET_PANELS_DAMAGED);
+        }
 
-    }while(!end);
-
-
-
-
-
-
+        if(status[0] == stat_finished && status[1] == stat_finished)
+        {
+            scroll_stop();
+            if(error_fsp[0] != 0x00 || error_fsp[1]!= 0x00)
+            {
+                LOG_E(LOG_STD,"Error FSP");
+                ret.code = F_RET_MOTOR_ERROR_API_FSP;
+                ret.fsp_motorH_error_code = error_fsp[0];
+                ret.fsp_motorL_error_code = error_fsp[1];
+                return ret;
+            }
+            else
+            {
+                LOG_D(LOG_STD,"No error");
+                return_motor_cplx_update(&ret,F_RET_OK);
+                return ret;
+            }
+        }
+    }
+    return_motor_cplx_update(&ret,F_RET_OK);
 }
 
 return_t error_mode_process(void)
@@ -248,7 +312,7 @@ return_t error_mode_process(void)
     }
 
 
-    return_motor_cplx_t retcplx = error_test_1H();
+    volatile return_motor_cplx_t retcplx = error_test_1H();
     if(flag_overcurrent_vm == TRUE)
     {
        sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
@@ -304,6 +368,12 @@ return_t error_mode_process(void)
     system_set_motor(sys_mot);
 
 
+    if(sys_mot.error_lvl1.value == 0x00 &&
+           sys_mot.error_lvl2.value == 0x00)
+    {
+        retcplx = error_test_2();
+        volatile uint8_t x=0;
+    }
 
     if(sys_mot.error_lvl1.value == 0x00 &&
        sys_mot.error_lvl2.value == 0x00 &&
