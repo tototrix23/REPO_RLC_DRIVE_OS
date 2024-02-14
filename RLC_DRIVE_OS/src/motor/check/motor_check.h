@@ -13,7 +13,7 @@
 #include <_core/c_common.h>
 
 
-return_t motor_check(void);
+return_t motor_check(bool_t long_vm_cuttof);
 
 
 

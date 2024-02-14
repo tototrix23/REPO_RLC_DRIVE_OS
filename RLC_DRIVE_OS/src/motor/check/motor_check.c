@@ -13,7 +13,7 @@
 #include <adc/adc.h>
 #include <return_codes.h>
 
-return_t motor_check(void)
+return_t motor_check(bool_t long_vm_cuttof)
 {
     return_t ret = X_RET_OK;
 
@@ -26,10 +26,14 @@ return_t motor_check(void)
     // Fermeture du FSP
     //motor_deinit_fsp();
 
-    delay_ms(250);
+    if(long_vm_cuttof == TRUE)
+       delay_ms(3000);
+    else
+       delay_ms(500);
+
     flag_overcurrent_vm = FALSE;
     R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
-    delay_ms(250);
+    delay_ms(500);
     if(flag_overcurrent_vm == TRUE)
     {
         R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_LOW );

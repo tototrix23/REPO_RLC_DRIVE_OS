@@ -51,7 +51,7 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
     // Check de la partie moteur
     //----------------------------------------------------------------------------------------------
-    ret = motor_check();
+    ret = motor_check(FALSE);
     if(ret != X_RET_OK)
     {
         drive_control.running=FALSE;
@@ -263,7 +263,7 @@ static return_t init_enrl(void)
     int32_t pulsesH1;
     int32_t pulsesH2;
 
-    flag_overcurrent_vm = TRUE;//DEBUG_FORCE
+    //flag_overcurrent_vm = TRUE;//DEBUG_FORCE
 
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
     motor_drive_sequence(&ptr->sequences.init.enrl_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);

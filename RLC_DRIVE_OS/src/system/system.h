@@ -48,6 +48,8 @@ typedef struct st_system_motor_t
       struct
       {
           bool_t damaged_panels;
+          bool_t motor_driving_h;
+          bool_t motor_driving_l;
           bool_t unknown;
       }bits;
    }error_lvl3;

@@ -47,7 +47,7 @@ void manual_mode_process(void) {
 
     // Routine pour vérifier la présence de défaut éléctrique sur la partie moteur.
     // Si une erreur éléctrique est présente alors le mode manuel est inactif.
-    return_t ret = motor_check();
+    return_t ret = motor_check(FALSE);
     while(ret != X_RET_OK)
     {
         LOG_E(LOG_STD,"Error motor check");
@@ -56,7 +56,7 @@ void manual_mode_process(void) {
         if(ts_elasped)
         {
             h_time_update(&ts);
-            ret = motor_check();
+            ret = motor_check(FALSE);
         }
         tx_thread_sleep(1);
     }

@@ -175,6 +175,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                         case MOTOR_120_DEGREE_CTRL_STATUS_BRAKE:
                             motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                             motor_wait_stop(motors_instance.motors[i]);
+                            motors_instance.motors[i]->motor_ctrl_instance->p_api->reset(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                             if(phase->params_motors[i].non_regulated.settings.percent != 0)
                             {
                                 motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);

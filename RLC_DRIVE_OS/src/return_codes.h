@@ -37,6 +37,11 @@
 #define F_RET_MOTOR_AUTO_OVERCURRENT         -10501
 #define F_RET_MOTOR_AUTO_TIMEOUT_PULSES      -10502
 #define F_RET_PANELS_DAMAGED                 -10503
+#define F_RET_MOTOR_DRIVING_H                -10504
+#define F_RET_MOTOR_DRIVING_L                -10505
+#define F_RET_MOTOR_DRIVING_HL               -10506
+
+
 
 
 #endif /* RETURN_CODES_H_ */

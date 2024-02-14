@@ -55,7 +55,7 @@ void thread_motors_entry(void)
     // Analyse des différents organes relatifs au pilotage des moteurs
     c_timespan_t ts1;
     h_time_update(&ts1);
-    ret = motor_check();
+    ret = motor_check(TRUE);
     c_timespan_t ts2;
     h_time_get_elapsed(&ts1, &ts2);
 
