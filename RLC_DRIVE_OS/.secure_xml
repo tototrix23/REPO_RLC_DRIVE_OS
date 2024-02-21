@@ -76,18 +76,18 @@
       <configSetting altId="adc12.an026.pe14" configurationId="adc12.an026"/>
       <configSetting altId="adc12.an027.pe15" configurationId="adc12.an027"/>
       <configSetting altId="cgc.extal.p212" configurationId="cgc.extal"/>
-      <configSetting altId="gpt4.gtioc4a.pb04" configurationId="gpt4.gtioc4a"/>
-      <configSetting altId="gpt4.gtioc4b.pb05" configurationId="gpt4.gtioc4b"/>
-      <configSetting altId="gpt5.gtioc5a.pb06" configurationId="gpt5.gtioc5a"/>
-      <configSetting altId="gpt5.gtioc5b.pb07" configurationId="gpt5.gtioc5b"/>
-      <configSetting altId="gpt6.gtioc6a.pb08" configurationId="gpt6.gtioc6a"/>
-      <configSetting altId="gpt6.gtioc6b.pb09" configurationId="gpt6.gtioc6b"/>
-      <configSetting altId="gpt7.gtioc7a.pc08" configurationId="gpt7.gtioc7a"/>
-      <configSetting altId="gpt7.gtioc7b.pc09" configurationId="gpt7.gtioc7b"/>
-      <configSetting altId="gpt8.gtioc8a.pa08" configurationId="gpt8.gtioc8a"/>
-      <configSetting altId="gpt8.gtioc8b_a.pa09" configurationId="gpt8.gtioc8b"/>
-      <configSetting altId="gpt9.gtioc9a.pa10" configurationId="gpt9.gtioc9a"/>
-      <configSetting altId="gpt9.gtioc9b.pa11" configurationId="gpt9.gtioc9b"/>
+      <configSetting altId="gpt4.gtioc4a.pb04" configurationId="gpt4.gtioc4a" isUsedByDriver="true"/>
+      <configSetting altId="gpt4.gtioc4b.pb05" configurationId="gpt4.gtioc4b" isUsedByDriver="true"/>
+      <configSetting altId="gpt5.gtioc5a.pb06" configurationId="gpt5.gtioc5a" isUsedByDriver="true"/>
+      <configSetting altId="gpt5.gtioc5b.pb07" configurationId="gpt5.gtioc5b" isUsedByDriver="true"/>
+      <configSetting altId="gpt6.gtioc6a.pb08" configurationId="gpt6.gtioc6a" isUsedByDriver="true"/>
+      <configSetting altId="gpt6.gtioc6b.pb09" configurationId="gpt6.gtioc6b" isUsedByDriver="true"/>
+      <configSetting altId="gpt7.gtioc7a.pc08" configurationId="gpt7.gtioc7a" isUsedByDriver="true"/>
+      <configSetting altId="gpt7.gtioc7b.pc09" configurationId="gpt7.gtioc7b" isUsedByDriver="true"/>
+      <configSetting altId="gpt8.gtioc8a.pa08" configurationId="gpt8.gtioc8a" isUsedByDriver="true"/>
+      <configSetting altId="gpt8.gtioc8b_a.pa09" configurationId="gpt8.gtioc8b" isUsedByDriver="true"/>
+      <configSetting altId="gpt9.gtioc9a.pa10" configurationId="gpt9.gtioc9a" isUsedByDriver="true"/>
+      <configSetting altId="gpt9.gtioc9b.pa11" configurationId="gpt9.gtioc9b" isUsedByDriver="true"/>
       <configSetting altId="gpt_poegd.gtetrgd.pc13" configurationId="gpt_poegd.gtetrgd"/>
       <configSetting altId="jtag_fslash_swd.swclk.pa14" configurationId="jtag_fslash_swd.swclk"/>
       <configSetting altId="jtag_fslash_swd.swdio.pa13" configurationId="jtag_fslash_swd.swdio"/>
@@ -95,6 +95,7 @@
       <configSetting altId="p001.input" configurationId="p001"/>
       <configSetting altId="pa15.output.low" configurationId="pa15"/>
       <configSetting altId="pb01.input" configurationId="pb01"/>
+      <configSetting altId="pb10.output.low" configurationId="pb10"/>
       <configSetting altId="pc04.input" configurationId="pc04"/>
       <configSetting altId="pc05.input" configurationId="pc05"/>
       <configSetting altId="pc07.output.low" configurationId="pc07"/>

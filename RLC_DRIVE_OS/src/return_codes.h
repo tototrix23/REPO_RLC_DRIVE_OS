@@ -41,7 +41,14 @@
 #define F_RET_MOTOR_DRIVING_L                -10505
 #define F_RET_MOTOR_DRIVING_HL               -10506
 
-
-
+#define F_RET_ERROR_VEE_OPENING              -11000
+#define F_RET_ERROR_VEE_CLOSING              -11001
+#define F_RET_ERROR_VEE_NOT_FOUND            -11002
+#define F_RET_ERROR_VEE_WRITING_OPERATION    -11003
+#define F_RET_ERROR_VEE_WRITING_TIMEOUT      -11004
+#define F_RET_ERROR_VEE_READING              -11005
+#define F_RET_ERROR_VEE_FORMATING            -11006
+#define F_RET_ERROR_VEE_GETTING_STATUS       -11007
+#define F_RET_ERROR_VEE_NOT_ERASED           -11008
 
 #endif /* RETURN_CODES_H_ */

@@ -32,3 +32,16 @@ st_system_t system_get(void)
     tx_mutex_put(&g_mutex_system);
     return ret;
 }
+
+void system_clear_all(void)
+{
+    system_init();
+}
+
+void system_clear_motor(void)
+{
+    tx_mutex_get(&g_mutex_system,TX_WAIT_FOREVER);
+    flag_overcurrent_vm = FALSE;
+    memset(&system_inst.motor,0x00,sizeof(st_system_motor_t));
+    tx_mutex_put(&g_mutex_system);
+}

@@ -131,7 +131,7 @@ FSP Configuration
       PB07 93 GPT5_GTIOC5B - L None "Peripheral mode" - - "AGT1: AGTOB1; GPT: GTETRGC; GPT1: GTIOC1B; GPT5: GTIOC5B; GPT_OPS: GTIW; ICU5: IRQ5-DS; IIC0: SDA0; KINT7: KR07; SCI0: RXD0; SCI1: DE1; SCI1: SS_CTS_RTS1" - IO - - 
       PB08 95 GPT6_GTIOC6A - L None "Peripheral mode" - - "AGT0: AGTIO0; CANFD0: CRX0; GPT2: GTIOC2A; GPT5: GTIOC5B; GPT6: GTIOC6A; ICU1: IRQ1-DS; IIC1: SCL1; KINT0: KR00; SCI1: RXD1; SCI4: RXD4" - IO - - 
       PB09 96 GPT6_GTIOC6B - L None "Peripheral mode" - - "AGT1: AGTIO1; CANFD0: CTX0; GPT2: GTIOC2B; GPT6: GTIOC6B; ICU2: IRQ2-DS; IIC1: SDA1; KINT1: KR01; SCI1: TXD1; SCI4: TXD4" - IO - - 
-      PB10 47 - - - - Disabled - - "ADC12: AN028; CAC: CACREF; CGC: VCOUT; GPT: GTCPPO4; GPT: GTCPPO7; GPT: GTETRGA; GPT: GTETRGB; GPT_OPS: GTIU; ICU10: IRQ10-DS; SCI3: CTS3; SCI4: TXD4" - None - - 
+      PB10 47 GPIO LED_ERROR M None "Output mode (Initial Low)" - - "ADC12: AN028; CAC: CACREF; CGC: VCOUT; GPT: GTCPPO4; GPT: GTCPPO7; GPT: GTETRGA; GPT: GTETRGB; GPT_OPS: GTIU; ICU10: IRQ10-DS; SCI3: CTS3; SCI4: TXD4" - IO - - 
       PB12 51 SCI3_RXD3 - L None "Peripheral mode" - - "ADC12: ADTRG0; CANFD0: CRX0; GPT0: GTIOC0A; GPT4: GTIOC4A; GPT_POEGA: GTETRGA; ICU2: IRQ2; SCI3: RXD3; SCI4: DE4; SCI4: SCK4; SPI1: SSLB0" - I - - 
       PB13 52 SCI3_TXD3 - L None "Peripheral mode" - - "CANFD0: CTX0; GPT0: GTIOC0B; GPT5: GTIOC5A; GPT7: GTIOC7A; GPT_OPS: GTOULO; ICU3: IRQ3; SCI3: TXD3; SCI4: CTS4; SPI1: RSPCK1" - O - - 
       PB14 53 SCI3_SCK3 - L None "Peripheral mode" - - "GPT1: GTIOC1A; GPT6: GTIOC6A; GPT8: GTIOC8A; GPT_OPS: GTOVLO; ICU4: IRQ4; IIC0: SDA0; SCI3: DE3; SCI3: SCK3; SCI4: DE4; SCI4: SS_CTS_RTS4; SPI1: MISO1" - IO - - 
@@ -251,6 +251,16 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     Pin Output Support: Disabled
     Pin Input Support: Disabled
+    
+  Module "Virtual EEPROM on Flash (rm_vee_flash)"
+    Parameter Checking: Default (BSP)
+    Reference Data Support: Disabled
+    Refresh Buffer Size: 32
+    
+  Module "Flash (r_flash_hp)"
+    Parameter Checking: Default (BSP)
+    Code Flash Programming Enable: Disabled
+    Data Flash Programming Enable: Enabled
     
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
@@ -2789,6 +2799,22 @@ FSP Configuration
               Extra Features: Output Disable: GTIOCA Disable Setting: Set Hi Z
               Extra Features: Output Disable: GTIOCB Disable Setting: Set Hi Z
               
+    Instance "Virtual EEPROM on Flash (rm_vee_flash)"
+      Name: g_vee
+      Record Max ID: 16
+      Number of Segments: 2
+      Start Address: BSP_FEATURE_FLASH_DATA_FLASH_START
+      Total Size: BSP_DATA_FLASH_SIZE_BYTES
+      Reference Data Size: 0
+      Callback: vee_callback
+      
+      Instance "g_flash0 Flash (r_flash_hp)"
+        Name: g_flash0
+        Data Flash Background Operation: Enabled
+        Callback: rm_vee_flash_callback
+        Flash Ready Interrupt Priority: Priority 9
+        Flash Error Interrupt Priority: Priority 9
+        
   Thread "Motors Thread"
     Symbol: thread_motors
     Name: Motors Thread

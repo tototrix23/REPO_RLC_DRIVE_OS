@@ -25,7 +25,7 @@ return_t motor_init_type(motor_type_t type)
     return_t ret = X_RET_OK;
 
     if(type == MOTOR_TYPE_UNKNOWN || type >= MOTOR_TYPE_COUNT)
-        ERROR_SET_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
+        ERROR_LOG_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
 
 
     if(motors_instance.profil.initialised  == MOTOR_PROFIL_INITIALISED)
@@ -38,11 +38,11 @@ return_t motor_init_type(motor_type_t type)
             break;
 
         case MOTOR_TYPE_RM_ALCOM:
-            ERROR_SET_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
+            ERROR_LOG_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
             break;
 
         default:
-            ERROR_SET_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
+            ERROR_LOG_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
             break;
     }
 

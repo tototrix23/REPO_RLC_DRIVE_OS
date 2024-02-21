@@ -35,27 +35,27 @@ return_t adc_init(void)
     err = R_ADC_B_Open (&g_adc_external_ctrl, &g_adc_external_cfg);
     if (err != FSP_SUCCESS)
     {
-        ERROR_SET_AND_RETURN(F_RET_ERROR_GENERIC);
+        ERROR_LOG_AND_RETURN(F_RET_ERROR_GENERIC);
     }
     err = R_ADC_B_ScanCfg (&g_adc_external_ctrl, &g_adc_external_scan_cfg);
     if (err != FSP_SUCCESS)
     {
         R_ADC_B_Close (&g_adc_external_ctrl);
-        ERROR_SET_AND_RETURN(F_RET_ERROR_GENERIC);
+        ERROR_LOG_AND_RETURN(F_RET_ERROR_GENERIC);
     }
 
     err = R_ADC_B_Calibrate (&g_adc_external_ctrl, NULL);
     if (err != FSP_SUCCESS)
     {
         R_ADC_B_Close (&g_adc_external_ctrl);
-        ERROR_SET_AND_RETURN(F_RET_ERROR_GENERIC);
+        ERROR_LOG_AND_RETURN(F_RET_ERROR_GENERIC);
     }
     R_BSP_SoftwareDelay (10, BSP_DELAY_UNITS_MILLISECONDS);
     err = R_ADC_B_ScanStart (&g_adc_external_ctrl);
     if (err != FSP_SUCCESS)
     {
         R_ADC_B_Close (&g_adc_external_ctrl);
-        ERROR_SET_AND_RETURN(F_RET_ERROR_GENERIC);
+        ERROR_LOG_AND_RETURN(F_RET_ERROR_GENERIC);
     }
 
     return ret;
@@ -81,7 +81,7 @@ return_t adc_capture(void)
     fsp_err_t err = R_ADC_B_ScanGroupStart(&g_adc_external_ctrl,ADC_GROUP_MASK_8);
     if(err != FSP_SUCCESS)
     {
-        ERROR_SET_AND_RETURN(F_RET_ERROR_GENERIC);
+        ERROR_LOG_AND_RETURN(F_RET_ERROR_GENERIC);
     }
     return ret;
 }

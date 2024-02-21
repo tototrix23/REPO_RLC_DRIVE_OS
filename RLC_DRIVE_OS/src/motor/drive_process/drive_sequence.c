@@ -53,7 +53,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
            (motors_instance.motors[1]->status == MOTOR_120_DEGREE_CTRL_STATUS_ERROR))
         {
            result->status = SEQUENCE_FINISH_ERROR;
-           ERROR_SET_AND_RETURN(F_RET_MOTOR_SEQUENCE_ERROR_START);
+           ERROR_LOG_AND_RETURN(F_RET_MOTOR_SEQUENCE_ERROR_START);
         }
     }
 
@@ -269,7 +269,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                 if(result->errorH != 0x00 || result->errorL != 0x00)
                 {
                     result->status = SEQUENCE_FINISH_ERROR;
-                    ERROR_SET_AND_RETURN(F_RET_MOTOR_SEQUENCE_ERROR_RUN);
+                    ERROR_LOG_AND_RETURN(F_RET_MOTOR_SEQUENCE_ERROR_RUN);
                 }
             }
 
@@ -286,7 +286,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                     if((behaviour & MOTOR_SEQUENCE_CHECK_TIMEOUT) != 0x00)
                     {
                         result->status = SEQUENCE_FINISH_ERROR;
-                        ERROR_SET_AND_RETURN(F_RET_MOTOR_SEQUENCE_ERROR_TIMEOUT);
+                        ERROR_LOG_AND_RETURN(F_RET_MOTOR_SEQUENCE_ERROR_TIMEOUT);
                     }
                 }
             }

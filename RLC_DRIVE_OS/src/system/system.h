@@ -90,6 +90,8 @@ extern st_system_t system_inst;
 void system_init(void);
 void system_set_motor(st_system_motor_t value);
 st_system_t system_get(void);
+void system_clear_all(void);
+void system_clear_motor(void);
 
 
 #endif /* SYSTEM_SYSTEM_H_ */

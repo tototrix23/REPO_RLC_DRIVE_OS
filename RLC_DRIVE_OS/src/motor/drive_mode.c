@@ -11,6 +11,7 @@
 #include <motor/modes/manual_mode.h>
 #include <motor/modes/auto_mode.h>
 #include <motor/drive_process/drive_sequence.h>
+#include <system/system.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -50,6 +51,15 @@ return_t set_drive_mode(drive_mode_t mode)
     {
         drive_control.changing = TRUE;
         bool_t change_order = FALSE;
+
+        // Gestion de l'entrée dans le mode manuel
+        // Permet d'executer certaines actions
+        if(mode == MOTOR_MANUAL_MODE)
+        {
+            LOG_I(LOG_STD,"Reset des erreurs moteur");
+            system_clear_motor();
+        }
+
 
         switch(mode)
         {

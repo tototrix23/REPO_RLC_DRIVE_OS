@@ -405,7 +405,7 @@ return_t motor_wait_stop(st_motor_t *mot)
     	if(res == TRUE)
     	{
     	    LOG_E(LOG_STD,"Wait stop flag timeout");
-    		ERROR_SET_AND_RETURN(F_RET_MOTOR_STOP_FLAG_TIMEOUT);
+    	    ERROR_LOG_AND_RETURN(F_RET_MOTOR_STOP_FLAG_TIMEOUT);
     	}
     	h_time_update(&ts);
 	}

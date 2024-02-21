@@ -34,6 +34,7 @@
             <slot name="PB07" secure="true"/>
             <slot name="PB08" secure="true"/>
             <slot name="PB09" secure="true"/>
+            <slot name="PB10" secure="true"/>
             <slot name="PB12" secure="true"/>
             <slot name="PB13" secure="true"/>
             <slot name="PB14" secure="true"/>
@@ -126,6 +127,8 @@
             <slot name="IRQ34" secure="true"/>
             <slot name="IRQ35" secure="true"/>
             <slot name="IRQ36" secure="true"/>
+            <slot name="IRQ37" secure="true"/>
+            <slot name="IRQ38" secure="true"/>
         </peripheral>
     </partition>
 </azone>
