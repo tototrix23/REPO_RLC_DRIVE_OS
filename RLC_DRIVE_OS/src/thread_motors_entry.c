@@ -46,19 +46,42 @@ void thread_motors_entry(void)
         cnt++;
         tx_thread_sleep(100);
     }*/
-
+    LOG_I(LOG_STD,"Motor thread start");
     // Initialisation POEG
     R_POEG_Open(g_poeg0.p_ctrl, g_poeg0.p_cfg);
 
 
+    // Analyse du status dans la VEE
+    // Si le process moteur est déjà en défault alors on passe directement en mode MOTOR_ERROR_MODE
+    if(system_check_error() == TRUE)
+    {
+        // On ouvre le FSP à cette occasion car sinon la stack moteur n'est pas configurée.
+        // Elle est configurée normalement dans la fonction "motor_check"
+        motor_init_fsp();
+        motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
+        motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
 
-    // Analyse des différents organes relatifs au pilotage des moteurs
-    c_timespan_t ts1;
-    h_time_update(&ts1);
-    ret = motor_check(TRUE);
-    c_timespan_t ts2;
-    h_time_get_elapsed(&ts1, &ts2);
-
+        LOG_E(LOG_STD,"Starting on status error");
+        set_drive_mode(MOTOR_ERROR_MODE);
+    }
+    else
+    {
+        LOG_I(LOG_STD,"Checking motors level1...");
+        // Analyse des différents organes relatifs au pilotage des moteurs
+        c_timespan_t ts1;
+        h_time_update(&ts1);
+        ret = motor_check(TRUE);
+        if(ret != X_RET_OK)
+        {
+            LOG_E(LOG_STD,"Check motors level1 NOK");
+        }
+        else
+        {
+            LOG_I(LOG_STD,"Check motors level1 OK");
+        }
+        c_timespan_t ts2;
+        h_time_get_elapsed(&ts1, &ts2);
+    }
 
 
     /*

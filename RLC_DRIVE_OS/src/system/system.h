@@ -16,41 +16,41 @@ typedef struct st_system_motor_t
 {
    union
    {
-       uint16_t value;
+       uint16_t value :16;
        struct{
-           bool_t overcurrent_vm;
-           bool_t vcc_hall_h;
-           bool_t vcc_hall_l;
-           bool_t config_driver_h;
-           bool_t config_driver_l;
-           bool_t fsp_h;
-           bool_t fsp_l;
+           bool_t overcurrent_vm :1;
+           bool_t vcc_hall_h :1;
+           bool_t vcc_hall_l :1;
+           bool_t config_driver_h :1;
+           bool_t config_driver_l :1;
+           bool_t fsp_h :1;
+           bool_t fsp_l :1;
        }bits;
    }error_lvl1;
 
    union
    {
-       uint16_t value;
+       uint16_t value:16;
        struct
        {
-           bool_t error_pattern_h;
-           bool_t error_pattern_l;
-           bool_t timeout_pulses_h;
-           bool_t timeout_pulses_l;
-           bool_t unknown;
+           bool_t error_pattern_h :1;
+           bool_t error_pattern_l :1;
+           bool_t timeout_pulses_h :1;
+           bool_t timeout_pulses_l :1;
+           bool_t unknown :1;
        }bits;
    }error_lvl2;
 
 
    union
    {
-      uint16_t value;
+      uint16_t value:16;
       struct
       {
-          bool_t damaged_panels;
-          bool_t motor_driving_h;
-          bool_t motor_driving_l;
-          bool_t unknown;
+          bool_t damaged_panels :1;
+          bool_t motor_driving_h :1;
+          bool_t motor_driving_l :1;
+          bool_t unknown :1;
       }bits;
    }error_lvl3;
 
@@ -88,11 +88,11 @@ extern bool_t flag_overcurrent_vm;
 extern st_system_t system_inst;
 
 void system_init(void);
-void system_set_motor(st_system_motor_t value);
+void system_set_motor(st_system_motor_t *ptr_value);
 st_system_t system_get(void);
 void system_clear_all(void);
 void system_clear_motor(void);
-
+bool_t system_check_error(void);
 
 #endif /* SYSTEM_SYSTEM_H_ */
 

@@ -17,8 +17,8 @@
 #define LED_OFF   0
 
 void leds_init(void);
-void led_error_on(void);
-void led_error_off(void);
+void led_error_motor_on(void);
+void led_error_motor_off(void);
 
 
 

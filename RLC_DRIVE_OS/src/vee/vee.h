@@ -16,6 +16,7 @@
 typedef enum
 {
     EEPROM_PATTERN,                    // char[16]
+    EEPROM_SYSTEM_STATUS,
     EEPROM_VAR_COUNT
 }nv_var_id;
 

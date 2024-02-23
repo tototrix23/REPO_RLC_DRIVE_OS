@@ -38,7 +38,7 @@ return_t motor_check(bool_t long_vm_cuttof)
     {
         R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_LOW );
         sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
-        system_set_motor(sys_mot);
+        system_set_motor(&sys_mot);
         return F_RET_MOTOR_CHECK_ERROR;
     }
     else sys_mot.error_lvl1.bits.overcurrent_vm = FALSE;
@@ -70,7 +70,8 @@ return_t motor_check(bool_t long_vm_cuttof)
     if(ret != X_RET_OK)
         sys_mot.error_lvl1.bits.config_driver_l = TRUE;
 
-    system_set_motor(sys_mot);
+    //sys_mot.error_lvl1.bits.config_driver_l = TRUE;
+    system_set_motor(&sys_mot);
 
     if(sys_mot.error_lvl1.value != 0x0)
         return F_RET_MOTOR_CHECK_ERROR;

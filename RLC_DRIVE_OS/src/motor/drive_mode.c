@@ -56,9 +56,12 @@ return_t set_drive_mode(drive_mode_t mode)
         // Permet d'executer certaines actions
         if(mode == MOTOR_MANUAL_MODE)
         {
-            LOG_I(LOG_STD,"Reset des erreurs moteur");
             system_clear_motor();
         }
+
+
+        if(system_check_error() == TRUE)
+            mode = MOTOR_ERROR_MODE;
 
 
         switch(mode)

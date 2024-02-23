@@ -15,6 +15,7 @@
 #include <motor/motors_errors.h>
 #include <motor/check/motor_check.h>
 #include <adc/adc.h>
+#include <leds/leds.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -41,12 +42,13 @@ return_t init_mode_process(void) {
     c_timespan_t ts;
     bool_t end = FALSE;
     bool_t ts_elasped;
-    int32_t pulsesH;
-    int32_t pulsesL;
     h_time_update(&ts);
 
     motors_instance.error = MOTORS_ERROR_NONE;
 
+    // Remise à zero de la LED dédiée aux erreurs moteur.
+    // En effet on ne peut pas lancer le mode manuel si une erreur est présente
+    led_error_motor_off();
 
     //----------------------------------------------------------------------------------------------
     // Check de la partie moteur

@@ -18,6 +18,8 @@
 #include <motor/check/motor_check.h>
 #include <remotectrl/remotectrl.h>
 #include <adc/adc.h>
+#include <leds/leds.h>
+
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -44,13 +46,15 @@ void manual_mode_process(void) {
     if(m12_enrl) remote = remote | 0x02;
     if(m12_derh) remote = remote | 0x04;
 
+    // RAZ de la LED dédiée aux erreurs moteur
+    led_error_motor_off();
 
     // Routine pour vérifier la présence de défaut éléctrique sur la partie moteur.
     // Si une erreur éléctrique est présente alors le mode manuel est inactif.
     return_t ret = motor_check(FALSE);
     while(ret != X_RET_OK)
     {
-        LOG_E(LOG_STD,"Error motor check");
+
         if(drive_stop_request() == TRUE) return;
         h_time_is_elapsed_ms(&ts, 3000, &ts_elasped);
         if(ts_elasped)

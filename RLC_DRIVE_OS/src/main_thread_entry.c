@@ -68,13 +68,14 @@ void main_thread_entry(void)
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
    */
 
-    //
+    // Initialisation de la VEE (EEPROM virtuelle)
     vee_init();
-    //
+    // Initalisation des LEDs
     leds_init();
-
+    //
+    set_drive_mode(MOTOR_INIT_MODE);
     // Demarrage de la partie moteur
-    //tx_thread_resume(&thread_motors);
+    tx_thread_resume(&thread_motors);
 
     c_timespan_t ts;
     h_time_update(&ts);
@@ -89,13 +90,13 @@ void main_thread_entry(void)
         tx_thread_sleep(100);
     }*/
 
-    set_drive_mode(MOTOR_INIT_MODE);
+    //set_drive_mode(MOTOR_INIT_MODE);
 
     /* TODO: add your own code here */
     while (1)
     {
 
-        //remotectrl_process();
+        remotectrl_process();
         tx_thread_sleep(10);
 
 

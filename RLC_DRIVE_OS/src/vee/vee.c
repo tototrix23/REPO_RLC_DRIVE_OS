@@ -7,6 +7,7 @@
 #include <_core/c_timespan/c_timespan.h>
 #include <_hal/h_time/h_time.h>
 #include "vee.h"
+#include <system/system.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -15,7 +16,7 @@
 #define LOG_MODULE    "vee"
 
 #define VEE_PATTERN_SIZE  16
-const char vee_pattern_ref[VEE_PATTERN_SIZE] = "VEE PAT V01";
+const char vee_pattern_ref[VEE_PATTERN_SIZE] = "VEE PAT V02";
 // Declaration des varibles à entretenir dans l'EEPROM virtuelle
 static char vee_pattern[VEE_PATTERN_SIZE];
 
@@ -45,6 +46,11 @@ vee_var_st vee_var_array[EEPROM_VAR_COUNT] =
   .id = EEPROM_PATTERN,
   .ptr_data = vee_pattern,
   .size = sizeof(vee_pattern)
+ },
+ {
+  .id = EEPROM_SYSTEM_STATUS,
+  .ptr_data = &system_inst,
+  .size = sizeof(st_system_t)
  }
 };
 //@formatter:on

@@ -16,6 +16,7 @@
 #include <motor/motors_errors.h>
 #include <motor/check/motor_check.h>
 #include <adc/adc.h>
+#include <leds/leds.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -27,7 +28,8 @@ static return_motor_cplx_t error_test_1H(void);
 static return_motor_cplx_t error_test_1L(void);
 static return_motor_cplx_t error_test_2(void);
 static return_motor_cplx_t error_test_3(void);
-
+static return_t error_loop(void);
+static void error_log_results(st_system_motor_t *ptr_system_motor);
 static void scroll_stop(void);
 
 static void scroll_stop(void)
@@ -90,7 +92,7 @@ static return_motor_cplx_t error_test_1H(void)
     int32_t pulses;
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulses);
     pulses = abs(pulses);
-    LOG_I(LOG_STD,"Counter %d",pulses);
+    LOG_D(LOG_STD,"Counter %d",pulses);
 
     return ret;
 }
@@ -148,7 +150,7 @@ static return_motor_cplx_t error_test_1L(void)
     int32_t pulses;
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulses);
     pulses = abs(pulses);
-    LOG_I(LOG_STD,"Counter %d",pulses);
+    LOG_D(LOG_STD,"Counter %d",pulses);
     return ret;
 }
 
@@ -484,38 +486,109 @@ static return_motor_cplx_t error_test_3(void)
     return_motor_cplx_update(&ret,F_RET_OK);
 }
 
+static void error_log_results(st_system_motor_t *ptr_system_motor)
+{
+    if(ptr_system_motor->error_lvl1.value != 0x00 ||
+       ptr_system_motor->error_lvl2.value != 0x00 ||
+       ptr_system_motor->error_lvl3.value != 0x00)
+    {
+        LOG_E(LOG_STD,"Error detected");
+
+        if(ptr_system_motor->error_lvl1.bits.overcurrent_vm != 0x00){
+            LOG_E(LOG_STD,"Lvl1 overcurrent_vm");}
+        if(ptr_system_motor->error_lvl1.bits.vcc_hall_h != 0x00){
+            LOG_E(LOG_STD,"Lvl1 vcc_hall_h");}
+        if(ptr_system_motor->error_lvl1.bits.vcc_hall_l != 0x00){
+            LOG_E(LOG_STD,"Lvl1 vcc_hall_l");}
+        if(ptr_system_motor->error_lvl1.bits.fsp_h != 0x00){
+            LOG_E(LOG_STD,"Lvl1 fsp_h");}
+        if(ptr_system_motor->error_lvl1.bits.fsp_l != 0x00){
+            LOG_E(LOG_STD,"Lvl1 fsp_l");}
+        if(ptr_system_motor->error_lvl1.bits.config_driver_h != 0x00){
+            LOG_E(LOG_STD,"Lvl1 config_driver_h");}
+        if(ptr_system_motor->error_lvl1.bits.config_driver_l != 0x00){
+            LOG_E(LOG_STD,"Lvl1 config_driver_l");}
+        if(ptr_system_motor->error_lvl2.bits.error_pattern_h != 0x00){
+            LOG_E(LOG_STD,"Lvl2 error_pattern_h");}
+        if(ptr_system_motor->error_lvl2.bits.error_pattern_l != 0x00){
+            LOG_E(LOG_STD,"Lvl2 error_pattern_l");}
+        if(ptr_system_motor->error_lvl2.bits.timeout_pulses_h != 0x00){
+            LOG_E(LOG_STD,"Lvl2 timeout_pulses_h");}
+        if(ptr_system_motor->error_lvl2.bits.timeout_pulses_l != 0x00){
+            LOG_E(LOG_STD,"Lvl2 timeout_pulses_l");}
+        if(ptr_system_motor->error_lvl2.bits.unknown != 0x00){
+            LOG_E(LOG_STD,"Lvl2 unknown");}
+        if(ptr_system_motor->error_lvl3.bits.damaged_panels != 0x00){
+             LOG_E(LOG_STD,"Lvl3 damaged_panels");}
+        if(ptr_system_motor->error_lvl3.bits.motor_driving_h != 0x00){
+             LOG_E(LOG_STD,"Lvl3 motor_driving_h");}
+        if(ptr_system_motor->error_lvl3.bits.motor_driving_l != 0x00){
+             LOG_E(LOG_STD,"Lvl3 motor_driving_l");}
+    }
+}
+
+
+static return_t error_loop(void)
+{
+    return_t ret = X_RET_OK;
+    bool_t end=FALSE;
+    do
+    {
+        led_error_motor_on();
+        CHECK_STOP_REQUEST_NESTED();
+        tx_thread_sleep(1);
+    }while(!end);
+    return ret;
+}
+
+
 
 return_t error_mode_process(void)
 {
     drive_control.running = TRUE;
     return_t ret = X_RET_OK;
-    bool_t end = FALSE;
-    st_system_motor_t sys_mot;
-    memset(&sys_mot,0x00,sizeof(sys_mot));
 
-    LOG_D(LOG_STD,"Start");
-    ret = motor_check(TRUE);
-    if(ret != X_RET_OK)
+    // Verification pour savoir si le mode erreur demarre avec une erreur déjà présente
+    // Dans ce cas seul le mode manuel peut acquitter le défaut et il n'est pas souhaitable de relancer
+    // la procédure de vérification
+    // On passe directement dans la boucle erreur
+    if(system_check_error() == TRUE)
     {
-        do
-        {
-            CHECK_STOP_REQUEST();
-            tx_thread_sleep(1);
-        }while(!end);
+        LOG_E(LOG_STD,"System already in error");
+        error_loop();
+        CHECK_STOP_REQUEST();
     }
 
 
+    st_system_motor_t sys_mot;
+    memset(&sys_mot,0x00,sizeof(sys_mot));
+
+    LOG_I(LOG_STD,"Checking motors level1...");
+    ret = motor_check(TRUE);
+    if(ret != X_RET_OK)
+    {
+        LOG_E(LOG_STD,"Check motors level1 NOK")
+        error_log_results(&sys_mot);
+        system_set_motor(&sys_mot);
+        error_loop();
+        CHECK_STOP_REQUEST();
+    }
+    else
+    {
+        LOG_I(LOG_STD,"Check motors level1 OK")
+    }
+
+
+    LOG_I(LOG_STD,"Checking motors level2...");
     volatile return_motor_cplx_t retcplx = error_test_1H();
     CHECK_STOP_REQUEST();
     if(flag_overcurrent_vm == TRUE)
     {
        sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
-       system_set_motor(sys_mot);
-       do
-       {
-           CHECK_STOP_REQUEST();
-           tx_thread_sleep(1);
-       }while(!end);
+       error_log_results(&sys_mot);
+       system_set_motor(&sys_mot);
+       error_loop();
+       CHECK_STOP_REQUEST();
     }
     if(retcplx.code != X_RET_OK)
     {
@@ -531,19 +604,17 @@ return_t error_mode_process(void)
          else
              sys_mot.error_lvl2.bits.unknown = TRUE;
     }
-    system_set_motor(sys_mot);
+    //system_set_motor(sys_mot);
 
     retcplx = error_test_1L();
     CHECK_STOP_REQUEST();
     if(flag_overcurrent_vm == TRUE)
     {
        sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
-       system_set_motor(sys_mot);
-       do
-       {
-           CHECK_STOP_REQUEST();
-           tx_thread_sleep(1);
-       }while(!end);
+       error_log_results(&sys_mot);
+       system_set_motor(&sys_mot);
+       error_loop();
+       CHECK_STOP_REQUEST();
     }
 
     if(retcplx.code != X_RET_OK)
@@ -560,28 +631,29 @@ return_t error_mode_process(void)
          else
              sys_mot.error_lvl2.bits.unknown = TRUE;
     }
-    system_set_motor(sys_mot);
+    //system_set_motor(sys_mot);
 
 
     if(sys_mot.error_lvl1.value == 0x00 &&
            sys_mot.error_lvl2.value == 0x00)
     {
+        LOG_I(LOG_STD,"Check motors level2 OK");
+        LOG_I(LOG_STD,"Checking motors level3...");
         retcplx = error_test_2();
         CHECK_STOP_REQUEST();
 
         if(flag_overcurrent_vm == TRUE)
         {
            sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
-           system_set_motor(sys_mot);
-           do
-           {
-               CHECK_STOP_REQUEST();
-               tx_thread_sleep(1);
-           }while(!end);
+           error_log_results(&sys_mot);
+           system_set_motor(&sys_mot);
+           error_loop();
+           CHECK_STOP_REQUEST();
         }
 
         if(retcplx.code != F_RET_OK)
         {
+            LOG_E(LOG_STD,"Check motors level3 NOK");
             if(retcplx.code == F_RET_PANELS_DAMAGED)
                 sys_mot.error_lvl3.bits.damaged_panels = TRUE;
             else if(retcplx.code == F_RET_MOTOR_ERROR_API_FSP)
@@ -610,28 +682,36 @@ return_t error_mode_process(void)
                  else if(retcplx.fsp_motorH_error_code != 0x00)
                      sys_mot.error_lvl2.bits.unknown = TRUE;
             }
-            system_set_motor(sys_mot);
+            system_set_motor(&sys_mot);
         }
+        else
+        {
+            LOG_I(LOG_STD,"Check motors level3 OK");
+        }
+    }
+    else
+    {
+        LOG_E(LOG_STD,"Check motors level2 NOK");
     }
 
 
     if(sys_mot.error_lvl3.bits.damaged_panels == TRUE)
     {
+        LOG_I(LOG_STD,"Checking motors level3 advanced...");
         retcplx = error_test_3();
         CHECK_STOP_REQUEST();
         if(flag_overcurrent_vm == TRUE)
         {
            sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
-           system_set_motor(sys_mot);
-           do
-           {
-               CHECK_STOP_REQUEST();
-               tx_thread_sleep(1);
-           }while(!end);
+           error_log_results(&sys_mot);
+           system_set_motor(&sys_mot);
+           error_loop();
+           CHECK_STOP_REQUEST();
         }
 
         if(retcplx.code != F_RET_OK)
         {
+            LOG_E(LOG_STD,"Check motors level3 advanced NOK");
             if(retcplx.code == F_RET_MOTOR_DRIVING_H)
                 sys_mot.error_lvl3.bits.motor_driving_h = TRUE;
             else if(retcplx.code == F_RET_MOTOR_DRIVING_L)
@@ -667,62 +747,32 @@ return_t error_mode_process(void)
                  else if(retcplx.fsp_motorH_error_code != 0x00)
                      sys_mot.error_lvl2.bits.unknown = TRUE;
             }
-            system_set_motor(sys_mot);
+            system_set_motor(&sys_mot);
+        }
+        else
+        {
+            LOG_I(LOG_STD,"Check motors level3 advanced OK");
         }
     }
 
     CHECK_STOP_REQUEST();
-    volatile uint8_t debug_halt = 1;
     if(sys_mot.error_lvl1.value == 0x00 &&
        sys_mot.error_lvl2.value == 0x00 &&
        sys_mot.error_lvl3.value == 0x00)
     {
+        system_set_motor(&sys_mot);
         LOG_W(LOG_STD,"No error detected -> starting init mode");
         CHECK_STOP_REQUEST();
         drive_control.running = FALSE;
+
         set_drive_mode(MOTOR_INIT_MODE);
         return X_RET_OK;
     }
     else
     {
-        LOG_E(LOG_STD,"Error detected");
-
-        if(sys_mot.error_lvl1.bits.overcurrent_vm != 0x00){
-            LOG_E(LOG_STD,"Lvl1 overcurrent_vm");}
-        if(sys_mot.error_lvl1.bits.vcc_hall_h != 0x00){
-            LOG_E(LOG_STD,"Lvl1 vcc_hall_h");}
-        if(sys_mot.error_lvl1.bits.vcc_hall_l != 0x00){
-            LOG_E(LOG_STD,"Lvl1 vcc_hall_l");}
-        if(sys_mot.error_lvl1.bits.fsp_h != 0x00){
-            LOG_E(LOG_STD,"Lvl1 fsp_h");}
-        if(sys_mot.error_lvl1.bits.fsp_l != 0x00){
-            LOG_E(LOG_STD,"Lvl1 fsp_l");}
-        if(sys_mot.error_lvl1.bits.config_driver_h != 0x00){
-            LOG_E(LOG_STD,"Lvl1 config_driver_h");}
-        if(sys_mot.error_lvl1.bits.config_driver_l != 0x00){
-            LOG_E(LOG_STD,"Lvl1 config_driver_l");}
-        if(sys_mot.error_lvl2.bits.error_pattern_h != 0x00){
-            LOG_E(LOG_STD,"Lvl2 error_pattern_h");}
-        if(sys_mot.error_lvl2.bits.error_pattern_l != 0x00){
-            LOG_E(LOG_STD,"Lvl2 error_pattern_l");}
-        if(sys_mot.error_lvl2.bits.timeout_pulses_h != 0x00){
-            LOG_E(LOG_STD,"Lvl2 timeout_pulses_h");}
-        if(sys_mot.error_lvl2.bits.timeout_pulses_l != 0x00){
-            LOG_E(LOG_STD,"Lvl2 timeout_pulses_l");}
-        if(sys_mot.error_lvl2.bits.unknown != 0x00){
-            LOG_E(LOG_STD,"Lvl2 unknown");}
-        if(sys_mot.error_lvl3.bits.damaged_panels != 0x00){
-             LOG_E(LOG_STD,"Lvl3 damaged_panels");}
-        if(sys_mot.error_lvl3.bits.motor_driving_h != 0x00){
-             LOG_E(LOG_STD,"Lvl3 motor_driving_h");}
-        if(sys_mot.error_lvl3.bits.motor_driving_l != 0x00){
-             LOG_E(LOG_STD,"Lvl3 motor_driving_l");}
-
-        do
-        {
-            CHECK_STOP_REQUEST();
-            tx_thread_sleep(1);
-        }while(!end);
+        error_log_results(&sys_mot);
+        error_loop();
+        CHECK_STOP_REQUEST();
     }
     drive_control.running = FALSE;
     return ret;
