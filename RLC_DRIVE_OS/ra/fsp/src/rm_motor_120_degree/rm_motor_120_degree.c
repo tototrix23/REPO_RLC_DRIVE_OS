@@ -618,7 +618,6 @@ fsp_err_t RM_MOTOR_120_DEGREE_ErrorCheck (motor_ctrl_t * const p_ctrl, uint16_t 
 
     if (MOTOR_ERROR_NONE != p_instance_ctrl->u2_error_info)
     {
-        volatile uint8_t xxx=0;
         rm_motor_120_degree_statemachine_event(p_instance_ctrl, MOTOR_120_DEGREE_CTRL_EVENT_ERROR);
     }
 
@@ -1167,10 +1166,7 @@ static uint16_t rm_motor_120_degree_error_check (motor_120_degree_instance_ctrl_
         }
     }
 
-    if(u2_error_flags != 0x00)
-    {
-        volatile uint8_t end=1;
-    }
+
 
     return u2_error_flags;
 }                                      /* End of function rm_motor_120_degree_error_check */

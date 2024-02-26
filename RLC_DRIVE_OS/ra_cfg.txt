@@ -157,8 +157,8 @@ FSP Configuration
       PD02 83 - - - - Disabled - - "ACMPHS (CMPOUT3): CMPOUT3; AGT1: AGTEE1; CGC: CLKOUT; GPT: GTCPPO0; GPT: GTCPPO2; ICU9: IRQ9-DS; KINT2: KR02; SCI3: DE3; SCI3: SCK3; SCI4: RXD4" - None - - 
       PD03 84 - - - - Disabled - - "ACMPHS (CMPOUT0): CMPOUT0; GPT: GTCPPO0; KINT3: KR03; SCI4: DE4; SCI4: SCK4; SCI9: CTS9; SPI1: SSLB2" - None - - 
       PD04 85 GPIO M12_AUTO - - "Input mode" - - "ACMPHS (CMPOUT1): CMPOUT1; GPT: GTCPPO1; KINT4: KR04; SCI4: DE4; SCI4: SS_CTS_RTS4; SCI9: DE9; SCI9: SS_CTS_RTS9; SPI1: SSLB3" - IO - - 
-      PD05 86 - - - - Disabled - - "GPT: GTADSM0; GPT: GTCPPO3; IIC1: SDA1; KINT5: KR05; SCI9: TXD9; SPI0: SSLA3" - None - - 
-      PD06 87 - - - - Disabled - - "GPT: GTCPPO4; IIC1: SCL1; KINT6: KR06; SCI9: RXD9; SPI0: SSLA2" - None - - 
+      PD05 86 SCI9_TXD9 - L - "Peripheral mode" - - "GPT: GTADSM0; GPT: GTCPPO3; IIC1: SDA1; KINT5: KR05; SCI9: TXD9; SPI0: SSLA3" - O - - 
+      PD06 87 SCI9_RXD9 - L - "Peripheral mode" - - "GPT: GTCPPO4; IIC1: SCL1; KINT6: KR06; SCI9: RXD9; SPI0: SSLA2" - I - - 
       PD07 88 GPIO M12_DERH - - "Input mode" - - "GPT: GTADSM1; GPT: GTCPPO7; KINT7: KR07; SCI9: DE9; SCI9: SCK9; SPI0: SSLA1" - IO - - 
       PD08 55 GPIO MOT2_CS L - "Output mode (Initial High)" - - "GPT2: GTIOC2A; KINT0: KR00; SCI1: TXD1; SCI2: CTS2; SPI1: SSLB1" - IO - - 
       PD09 56 GPIO MOT1_CS L - "Output mode (Initial High)" - - "GPT2: GTIOC2B; KINT1: KR01; SCI1: RXD1; SCI2: DE2; SCI2: SS_CTS_RTS2; SPI1: SSLB2" - IO - - 
@@ -208,7 +208,7 @@ FSP Configuration
   Module "Azure RTOS ThreadX Port (rm_threadx_port)"
   Module "UART (r_sci_b_uart)"
     Parameter Checking: Default (BSP)
-    FIFO Support: Disable
+    FIFO Support: Enable
     DTC Support: Disable
     Flow Control Support: Disable
     
@@ -323,7 +323,7 @@ FSP Configuration
       Extra: Clock Source: Internal Clock
       Extra: Start bit detection: Falling Edge
       Extra: Noise Filter: Disable
-      Extra: Receive FIFO Trigger Level: Max
+      Extra: Receive FIFO Trigger Level: One
       Extra: RS-485: DE Pin: Disable
       Extra: RS-485: DE Pin Polarity: Active High
       Extra: RS-485: DE Pin Assertion Time: 1
@@ -2815,6 +2815,32 @@ FSP Configuration
         Flash Ready Interrupt Priority: Priority 9
         Flash Error Interrupt Priority: Priority 9
         
+    Instance "g_uart_modem UART (r_sci_b_uart)"
+      General: Name: g_uart_modem
+      General: Channel: 9
+      General: Data Bits: 8bits
+      General: Parity: None
+      General: Stop Bits: 1bit
+      Baud: Baud Rate: 1000000
+      Baud: Baud Rate Modulation: Disabled
+      Baud: Max Error (%): 5
+      Flow Control: CTS/RTS Selection: Hardware RTS
+      Flow Control: Software RTS Port: Disabled
+      Flow Control: Software RTS Pin: Disabled
+      Extra: Clock Source: Internal Clock
+      Extra: Start bit detection: Falling Edge
+      Extra: Noise Filter: Disable
+      Extra: Receive FIFO Trigger Level: One
+      Extra: RS-485: DE Pin: Disable
+      Extra: RS-485: DE Pin Polarity: Active High
+      Extra: RS-485: DE Pin Assertion Time: 1
+      Extra: RS-485: DE Pin Negation Time: 1
+      Interrupts: Callback: uart_modem_callback
+      Interrupts: Receive Interrupt Priority: Priority 3
+      Interrupts: Transmit Data Empty Interrupt Priority: Priority 12
+      Interrupts: Transmit End Interrupt Priority: Priority 12
+      Interrupts: Error Interrupt Priority: Priority 12
+      
   Thread "Motors Thread"
     Symbol: thread_motors
     Name: Motors Thread
@@ -2840,12 +2866,12 @@ FSP Configuration
     Time slicing interval (ticks): 1
     
   Object "g_mutex_log Mutex"
-    Name: Mutex LOG
+    Name: Log Mutex
     Symbol: g_mutex_log
     Priority inheritance: Enabled
     
   Object "g_mutex_adc Mutex"
-    Name: New Mutex
+    Name: ADC Mutex
     Symbol: g_mutex_adc
     Priority inheritance: Enabled
     
@@ -2860,7 +2886,17 @@ FSP Configuration
     Queue Size (Bytes): 320
     
   Object "g_mutex_system Mutex"
-    Name: New Mutex
+    Name: System Mutex
     Symbol: g_mutex_system
+    Priority inheritance: Enabled
+    
+  Object "g_mutex_rtc Mutex"
+    Name: RTC Mutex
+    Symbol: g_mutex_rtc
+    Priority inheritance: Enabled
+    
+  Object "g_mutex_uart_modem Mutex"
+    Name: Uart Modem Mutex
+    Symbol: g_mutex_uart_modem
     Priority inheritance: Enabled
     

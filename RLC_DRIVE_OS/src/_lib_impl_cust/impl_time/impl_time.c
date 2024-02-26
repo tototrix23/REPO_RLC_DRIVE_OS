@@ -5,10 +5,10 @@
  *      Author: Ch.Leclercq
  */
 #include <hal_data.h>
-
 #include "impl_time.h"
 #include <adc/adc.h>
 #include <init.h>
+#include <rtc/rtc.h>
 static uint64_t impl_time_ms_global = 0;
 
 #undef  LOG_LEVEL
@@ -58,11 +58,17 @@ return_t impl_time_update(c_timespan_h handler)
 void impl_time_function(ULONG param)
 {
     PARAMETER_NOT_USED(param);
-    impl_time_ms_global += (uint64_t)((1000/THREADX_TICKS) * GLOBAL_TIMER_TICKS);
+    uint64_t delta = (uint64_t)((1000/THREADX_TICKS) * GLOBAL_TIMER_TICKS);
+    impl_time_ms_global += delta;
+    //rtc_time
     bool_t adc_ready=FALSE;
     adc_is_ready(&adc_ready);
     if(adc_ready == TRUE)
         adc_capture();
+
+    tx_mutex_get(&g_mutex_rtc,TX_WAIT_FOREVER);
+    rtc.time_ms += delta;
+    tx_mutex_put(&g_mutex_rtc);
 }
 
 

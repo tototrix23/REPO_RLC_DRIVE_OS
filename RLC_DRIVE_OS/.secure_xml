@@ -113,6 +113,8 @@
       <configSetting altId="sci3.rxd3.pb12" configurationId="sci3.rxd3" isUsedByDriver="true"/>
       <configSetting altId="sci3.sck3.pb14" configurationId="sci3.sck3" isUsedByDriver="true"/>
       <configSetting altId="sci3.txd3.pb13" configurationId="sci3.txd3" isUsedByDriver="true"/>
+      <configSetting altId="sci9.rxd9.pd06" configurationId="sci9.rxd9" isUsedByDriver="true"/>
+      <configSetting altId="sci9.txd9.pd05" configurationId="sci9.txd9" isUsedByDriver="true"/>
     </pincfg>
   </raPinConfiguration>
 </raConfiguration>

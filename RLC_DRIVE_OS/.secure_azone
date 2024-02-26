@@ -55,6 +55,8 @@
         <peripheral name="PORTD" group="PORT">
             <slot name="PD00" secure="true"/>
             <slot name="PD04" secure="true"/>
+            <slot name="PD05" secure="true"/>
+            <slot name="PD06" secure="true"/>
             <slot name="PD07" secure="true"/>
             <slot name="PD08" secure="true"/>
             <slot name="PD09" secure="true"/>
@@ -129,6 +131,10 @@
             <slot name="IRQ36" secure="true"/>
             <slot name="IRQ37" secure="true"/>
             <slot name="IRQ38" secure="true"/>
+            <slot name="IRQ39" secure="true"/>
+            <slot name="IRQ40" secure="true"/>
+            <slot name="IRQ41" secure="true"/>
+            <slot name="IRQ42" secure="true"/>
         </peripheral>
     </partition>
 </azone>

@@ -216,12 +216,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_Open (motor_120_driver_ctrl_t * const p_ctrl, moto
         }
 
 
-        if(p_ctrl == &g_mot_120_driver1_ctrl)
-        {
 
-        volatile uint8_t dummy = 1;
-            //return FSP_SUCCESS;
-        }
 
         p_extended_cfg->p_three_phase_instance->p_api->open(p_extended_cfg->p_three_phase_instance->p_ctrl,
                                                             p_extended_cfg->p_three_phase_instance->p_cfg);
@@ -1844,6 +1839,6 @@ void rm_motor_120_driver_cyclic (adc_callback_args_t * p_args)
     }
     else
     {
-        volatile uint8_t xxx=0;
+
     }
 }
