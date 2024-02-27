@@ -51,4 +51,24 @@
 #define F_RET_ERROR_VEE_GETTING_STATUS       -11007
 #define F_RET_ERROR_VEE_NOT_ERASED           -11008
 
+#define F_RET_FLASH_OPEN                     -11050
+#define F_RET_FLASH_CLOSE                    -11051
+#define F_RET_FLASH_MOUNT                    -11052
+#define F_RET_FLASH_FORMAT                   -11053
+#define F_RET_FLASH_NOT_OPENED               -11054
+#define F_RET_FLASH_MK_ROOT                  -11055
+#define F_RET_FLASH_UNMOUNT                  -11056
+#define F_RET_FLASH_FILE_OPEN                -11057
+#define F_RET_FLASH_FILE_WRITE               -11058
+
+#define F_RET_JSON_PARSE                     -11100
+#define F_RET_JSON_FIND_OBJECT               -11101
+#define F_RET_JSON_BAD_TYPE                  -11102
+
+#define F_RET_COMMS_OUT_TIMEOUT              -11200
+#define F_RET_COMMS_OUT_BAD_RESPONSE         -11201
+
+
+
+
 #endif /* RETURN_CODES_H_ */

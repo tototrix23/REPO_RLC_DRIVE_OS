@@ -14,4 +14,5 @@
 void comms_modem_init(void);
 void comms_modem_process_incoming(void);
 return_t comms_modem_get_datetime(void);
+return_t comms_modem_get_serial(void);
 #endif /* COMMS_MODEM_COMMS_MODEM_H_ */

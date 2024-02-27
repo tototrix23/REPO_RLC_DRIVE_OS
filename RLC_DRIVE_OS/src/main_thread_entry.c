@@ -16,6 +16,7 @@
 #include <vee/vee.h>
 #include <rtc/rtc.h>
 #include <cJSON/cJSON.h>
+#include <cJSON/JSON_process.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -26,12 +27,15 @@ extern TX_THREAD log_thread;
 
 i_time_t i_time_interface_t;
 
-
+const char json_file[] = "{\"type\":\"get_datetime\",\"data\":{\"status_code\":0,\"timestamp_unix\":1708955460000,\"timestamp\":\"2024-02-26T13:51:00Z\"}}";
 
 void test_json(void)
 {
-    const char json_file[] = "{\"type\":\"get_datetime\",\"data\":{\"status_code\":0,\"timestamp_unix\":1708955460,\"timestamp\":\"2024-02-26T13:51:00Z\"}}";
+
     const cJSON *data = NULL;
+
+
+    return_t ret = json_process_get_datetime(json_file);
 
     int status = 0;
     cJSON *ptr_json = cJSON_Parse(json_file);
@@ -60,9 +64,9 @@ void main_thread_entry(void)
     i_log.write_i = impl_log_write_i;
     i_log.write_w = impl_log_write_w;
 
-    while(1){
-    test_json();
-    }
+
+
+
     // Configuration de l'interface de gestion du temps
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
     h_time_init(&i_time_interface_t);
@@ -70,6 +74,9 @@ void main_thread_entry(void)
     rtc_init();
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
+
+
+
 
 
     // Initialisation de la partie moteurs (partie logicielle)
@@ -95,6 +102,9 @@ void main_thread_entry(void)
 
     // Initialisation de la VEE (EEPROM virtuelle)
     vee_init();
+    //
+
+
     // Initalisation des LEDs
     leds_init();
     //

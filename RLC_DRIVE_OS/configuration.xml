@@ -82,8 +82,8 @@
       <property id="config.bsp.fsp.mcu.canfd.max_data_rate_hz" value="5"/>
     </config>
     <config id="config.bsp.ra">
-      <property id="config.bsp.common.main" value="0x1000"/>
-      <property id="config.bsp.common.heap" value="0x2000"/>
+      <property id="config.bsp.common.main" value="0x2000"/>
+      <property id="config.bsp.common.heap" value="0x3000"/>
       <property id="config.bsp.common.vcc" value="3300"/>
       <property id="config.bsp.common.checking" value="config.bsp.common.checking.disabled"/>
       <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
@@ -2813,6 +2813,11 @@
     <object id="rtos.threadx.object.mutex.1575867566">
       <property id="rtos.threadx.object.mutex.name" value="Uart Modem Mutex"/>
       <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_uart_modem"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
+    <object id="rtos.threadx.object.mutex.2082196087">
+      <property id="rtos.threadx.object.mutex.name" value="New Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_flash"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
     <context id="_hal.0">

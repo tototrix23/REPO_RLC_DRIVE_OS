@@ -12,7 +12,16 @@
 #include <_core/c_timespan/c_timespan.h>
 #include <_hal/h_time/h_time.h>
 #include <cJSON/cJSON.h>
+#include <cJSON/JSON_process.h>
+#include <return_codes.h>
 #include "comms_modem.h"
+
+
+//https://176.142.122.240:5078/swagger/index.html
+//https://176.142.122.240:5068/swagger/index.html
+
+//BSP_DATA_FLASH_SIZE_BYTES
+//BSP_FEATURE_FLASH_DATA_FLASH_START
 
 typedef struct tx_info_t{
     bool_t in_progress;
@@ -77,7 +86,29 @@ return_t comms_modem_get_datetime(void)
     }
 
     // Traitement de la réponse
+    ret = json_process_get_datetime(rx_array);
 
+
+    end:
+    rx_clear();
+    outgoing_process_in_progress = FALSE;
+    return ret;
+}
+
+return_t comms_modem_get_serial(void)
+{
+    return_t ret = X_RET_OK;
+    char tx_array[128];
+    strcpy(tx_array,"{\"type\": \"get_serial\",\"data\":null }");
+
+    ret =   process_outgoing("get_serial",tx_array,5,500);
+    if(ret != X_RET_OK)
+    {
+        goto end;
+    }
+
+    // Traitement de la réponse
+    ret = json_process_get_datetime(rx_array);
 
 
     end:
@@ -101,7 +132,6 @@ return_t comms_modem_get_datetime(void)
 
 
 
-
 static return_t verify_received_json_type(char *type)
 {
     return_t ret = X_RET_OK;
@@ -109,13 +139,13 @@ static return_t verify_received_json_type(char *type)
     cJSON *ptr_json = cJSON_Parse(rx_array);
     if(ptr_json == NULL)
     {
-        ret = X_RET_ERR_GENERIC;
+        ret = F_RET_JSON_PARSE;
         goto end;
     }
     json_type = cJSON_GetObjectItemCaseSensitive(ptr_json, "type");
     if(ptr_json == NULL)
     {
-        ret = X_RET_ERR_GENERIC;
+        ret = F_RET_JSON_FIND_OBJECT;
         goto end;
     }
 
@@ -127,7 +157,7 @@ static return_t verify_received_json_type(char *type)
 
     if(strcmp(json_type->valuestring,type) != 0x0)
     {
-        ret = X_RET_ERR_GENERIC;
+        ret = F_RET_JSON_BAD_TYPE;
         goto end;
     }
 
@@ -157,13 +187,13 @@ static return_t process_outgoing(char *type,char *data,uint8_t retry,uint16_t ti
         bool_t rx_error = FALSE;
         do
         {
-            bool_t elasped;
-            h_time_is_elapsed_ms(&ts, timeout_ms, elasped);
+            bool_t elasped = FALSE;
+            h_time_is_elapsed_ms(&ts, timeout_ms, &elasped);
             if(elasped)
             {
                 if(r>=retry)
                 {
-                    ret = X_RET_ERR_GENERIC;
+                    ret = F_RET_COMMS_OUT_TIMEOUT;
                     goto end;
                 }
                 else
@@ -179,7 +209,7 @@ static return_t process_outgoing(char *type,char *data,uint8_t retry,uint16_t ti
                 {
                     if(r>=retry)
                     {
-                        ret = X_RET_ERR_GENERIC;
+                        ret = F_RET_COMMS_OUT_BAD_RESPONSE;
                         goto end;
                     }
                     else

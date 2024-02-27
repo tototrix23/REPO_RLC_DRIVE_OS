@@ -15,8 +15,8 @@
 #undef  LOG_MODULE
 #define LOG_MODULE    "vee"
 
-#define VEE_PATTERN_SIZE  16
-const char vee_pattern_ref[VEE_PATTERN_SIZE] = "VEE PAT V02";
+#define VEE_PATTERN_SIZE  8
+const char vee_pattern_ref[VEE_PATTERN_SIZE] = "VEE0002";
 // Declaration des varibles à entretenir dans l'EEPROM virtuelle
 static char vee_pattern[VEE_PATTERN_SIZE];
 
@@ -60,9 +60,13 @@ return_t vee_open(void)
 {
     return_t ret = F_RET_OK;
     fsp_err_t err_fsp = 0;
+    tx_mutex_get(&g_mutex_flash,TX_WAIT_FOREVER);
     err_fsp = RM_VEE_FLASH_Open (&g_vee_ctrl, &g_vee_cfg);
     if (FSP_SUCCESS != err_fsp)
+    {
+        tx_mutex_put(&g_mutex_flash);
         ERROR_LOG_AND_RETURN(F_RET_ERROR_VEE_OPENING);
+    }
     return ret;
 }
 
@@ -71,6 +75,7 @@ return_t vee_close(void)
     return_t ret = F_RET_OK;
     fsp_err_t err_fsp = 0;
     err_fsp = RM_VEE_FLASH_Close (&g_vee_ctrl);
+    tx_mutex_put(&g_mutex_flash);
     if (FSP_SUCCESS != err_fsp)
         ERROR_LOG_AND_RETURN(F_RET_ERROR_VEE_CLOSING);
     return ret;

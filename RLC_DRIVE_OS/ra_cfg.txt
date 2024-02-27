@@ -52,8 +52,8 @@ FSP Configuration
     Main Oscillator Wait Time: 8163 cycles
     
   RA Common
-    Main stack size (bytes): 0x1000
-    Heap size (bytes): 0x2000
+    Main stack size (bytes): 0x2000
+    Heap size (bytes): 0x3000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -2898,5 +2898,10 @@ FSP Configuration
   Object "g_mutex_uart_modem Mutex"
     Name: Uart Modem Mutex
     Symbol: g_mutex_uart_modem
+    Priority inheritance: Enabled
+    
+  Object "g_mutex_flash Mutex"
+    Name: New Mutex
+    Symbol: g_mutex_flash
     Priority inheritance: Enabled
     
