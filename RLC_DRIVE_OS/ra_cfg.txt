@@ -53,7 +53,7 @@ FSP Configuration
     
   RA Common
     Main stack size (bytes): 0x2000
-    Heap size (bytes): 0x3000
+    Heap size (bytes): 0x4000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -2903,5 +2903,16 @@ FSP Configuration
   Object "g_mutex_flash Mutex"
     Name: New Mutex
     Symbol: g_mutex_flash
+    Priority inheritance: Enabled
+    
+  Object "comms_queue Queue"
+    Name: Comms Queue
+    Symbol: comms_queue
+    Message Size (Words): 1
+    Queue Size (Bytes): 40
+    
+  Object "g_comms_mutex Mutex"
+    Name: Comms Mutex
+    Symbol: g_comms_mutex
     Priority inheritance: Enabled
     

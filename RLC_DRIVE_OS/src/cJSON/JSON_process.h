@@ -12,5 +12,5 @@
 #include <_core/c_common.h>
 
 return_t json_process_get_datetime(char *ptr);
-return_t json_process_get_serial(char *ptr);
+return_t json_process_get_serials(char *ptr);
 #endif /* CJSON_JSON_PROCESS_H_ */

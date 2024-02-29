@@ -7,6 +7,7 @@
 #include <cJSON/cJSON.h>
 #include "JSON_process.h"
 #include <rtc/rtc.h>
+#include <serial/serial.h>
 #include <return_codes.h>
 
 return_t json_process_get_datetime(char *ptr)
@@ -47,14 +48,12 @@ return_t json_process_get_datetime(char *ptr)
         rtc_set((uint64_t)json_unix->valuedouble);
     }
 
-
-
     end:
     cJSON_Delete(ptr_json);
     return ret;
 }
 
-return_t json_process_get_serial(char *ptr)
+return_t json_process_get_serials(char *ptr)
 {
     return_t ret = X_RET_OK;
 
@@ -72,6 +71,7 @@ return_t json_process_get_serial(char *ptr)
         goto end;
     }
 
+    // Récupération du serial (IMEI)
     cJSON *json_serial = cJSON_GetObjectItemCaseSensitive(json_data, "serial");
     if(json_serial == NULL)
     {
@@ -79,15 +79,33 @@ return_t json_process_get_serial(char *ptr)
         goto end;
     }
 
-
-
-    if(!cJSON_IsString(json_serial))
+    if(cJSON_IsNull(json_serial) || cJSON_IsString(json_serial))
+    {
+        serials_set_imei(json_serial->valuestring);
+    }
+    else
     {
         ret = F_RET_JSON_BAD_TYPE;
         goto end;
     }
 
+    // Récupération du nom de patrimoine
+    cJSON *json_name = cJSON_GetObjectItemCaseSensitive(json_data, "panel_name");
+    if(json_name == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
 
+    if(cJSON_IsNull(json_name) || cJSON_IsString(json_name))
+    {
+        serials_set_name(json_name->valuestring);
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
 
 
 

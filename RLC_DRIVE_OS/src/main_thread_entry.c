@@ -17,6 +17,9 @@
 #include <rtc/rtc.h>
 #include <cJSON/cJSON.h>
 #include <cJSON/JSON_process.h>
+#include <comms_packet/comms_packet.h>
+#include <serial/serial.h>
+
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -75,7 +78,26 @@ void main_thread_entry(void)
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
 
+    /*volatile uint32_t cnt=0;
+    do
+    {
+        volatile return_t rcomms = comms_packet_add(COMMS_PAYLOAD,json_file);
+        if(rcomms != X_RET_OK)
+        {
+           volatile uint8_t crash=1;
+           crash=0;
+        }
+        else
+        {
+            cnt++;
+        }
+        delay_ms(20);
+    }while(1);*/
 
+
+    serials_set_name("patr1");
+    serials_set_name(0x0);
+    serials_set_name("patr2");
 
 
 

@@ -16,10 +16,8 @@
 #include <return_codes.h>
 #include "comms_modem.h"
 
-
 //https://176.142.122.240:5078/swagger/index.html
 //https://176.142.122.240:5068/swagger/index.html
-
 //BSP_DATA_FLASH_SIZE_BYTES
 //BSP_FEATURE_FLASH_DATA_FLASH_START
 
@@ -95,7 +93,7 @@ return_t comms_modem_get_datetime(void)
     return ret;
 }
 
-return_t comms_modem_get_serial(void)
+return_t comms_modem_get_serials(void)
 {
     return_t ret = X_RET_OK;
     char tx_array[128];
@@ -108,7 +106,7 @@ return_t comms_modem_get_serial(void)
     }
 
     // Traitement de la réponse
-    ret = json_process_get_datetime(rx_array);
+    ret = json_process_get_serials(rx_array);
 
 
     end:
